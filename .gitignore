@@ -1,0 +1,13 @@
+/client/bin
+/replica/bin
+
+/logs
+/.git
+/.idea
+*.log
+*.csv
+*.pdf
+*.png
+*.pyc
+*.txt
+*.zip
