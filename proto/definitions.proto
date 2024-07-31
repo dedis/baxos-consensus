@@ -24,7 +24,6 @@ message ClientBatch {
 message ReplicaBatch {
   string unique_id = 1;
   repeated ClientBatch requests = 2;
-  int64 sender = 3;
 }
 
 /*
@@ -40,69 +39,47 @@ message Status {
   int64 sender = 3;
 }
 
-/*
-  PaxosConsensus defines the single consensus proto message type used for Paxos
-*/
+// instance serves as a container for 1) promise response for accepted value, 2) decided entries
 
-message PaxosConsensus {
-  int32 sender = 1;
-  int32 receiver = 2;
-
-  int32 type = 3; // 1-prepare, 2-promise, 3-propose, 4-accept, 5 internal timeout
-  string note = 4;
-
-  int32 instance_number = 5; // initial id for prepare messages, instance id for propose message
-  int32 ballot = 6;
-  int32 view = 7;
-
-  message instance{
-    int32 number = 1;
-    int32 ballot = 2;
-    ReplicaBatch value = 3;
-  }
-  repeated instance promiseReply = 8;
-  ReplicaBatch propose_value = 9;
-  repeated instance decided_values = 10; // decided value for last instances
+message instance{
+  int32 instance_number = 1;
+  int32 ballot = 2;
+  ReplicaBatch value = 3;
 }
 
-// raft proto structs
+message PrepareRequest {
+  int32 instance_number = 1;
+  int32 ballot = 2;
 
-message AppendRequest {
-
-  int64 term = 1;
-  int32 leaderId = 2;
-  int64 prevLogIndex = 3;
-  int64 prevLogTerm = 4;
-  string prevLogValue = 5;
-
-  message entry {
-    ReplicaBatch value = 1;
-    int64 term = 2;
-  }
-  repeated entry entries = 6;
-  int64 leaderCommit = 7;
+  instance last_decided = 3; // for instance_numer - 1 if the slot is already decided
 }
 
-message AppendResponse {
-  int64 term = 1;
-  bool success = 2;
+message PromiseReply {
+  bool promise = 1;
+
+  int64 last_promised_ballot = 2;
+
+  bool decided = 3; // if the current instance is already decided
+  instance decided_value = 4;
+
+  instance last_accepted_instance = 5;
 }
 
-// raft leader election
+message ProposeRequest {
 
-message LeaderRequest {
-  int64  term = 1;
-  int32 candidateId = 2;
-  int64 lastLogIndex = 3;
-  int64   lastLogTerm = 4;
+
+
+  int32 instance_number = 1;
+  int32 ballot = 2;
+  ReplicaBatch value = 3;
 }
 
-message LeaderResponse {
-  int64 term = 1;
-  bool voteGranted = 2;
+message AcceptReply {
+  bool accept = 1;
+  int64 last_promised_ballot = 2;
 }
 
 service Consensus {
-  rpc AppendEntries (AppendRequest) returns (AppendResponse);
-  rpc RequestVote (LeaderRequest) returns (LeaderResponse);
+  rpc phase_1 (PrepareRequest) returns (PromiseReply);
+  rpc phase_2 (ProposeRequest) returns (AcceptReply);
 }
