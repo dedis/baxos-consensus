@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"paxos_raft/configuration"
 	"paxos_raft/replica/src"
 )
 
@@ -27,7 +26,7 @@ func main() {
 
 	flag.Parse()
 
-	cfg, err := configuration.NewInstanceConfig(*configFile, *name)
+	cfg, err := src.NewInstanceConfig(*configFile, *name)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "load config: %v\n", err)
 		panic(err)

@@ -1,4 +1,4 @@
-package proto
+package src
 
 import (
 	"encoding/binary"

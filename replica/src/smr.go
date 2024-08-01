@@ -1,24 +1,22 @@
 package src
 
 import (
-	"paxos_raft/common"
-	"paxos_raft/proto"
 	"time"
 )
 
 // add the client batch to buffer and propose
 
-func (rp *Replica) handleClientBatch(batch *proto.ClientBatch) {
+func (rp *Replica) handleClientBatch(batch *ClientBatch) {
 	rp.incomingRequests = append(rp.incomingRequests, batch)
 
 	if (time.Now().Sub(rp.lastProposedTime).Microseconds() > int64(rp.replicaBatchTime) && len(rp.incomingRequests) > 0) || len(rp.incomingRequests) >= rp.replicaBatchSize {
-		var proposals []*proto.ClientBatch
+		var proposals []*ClientBatch
 		if len(rp.incomingRequests) > rp.replicaBatchSize {
 			proposals = rp.incomingRequests[:rp.replicaBatchSize]
 			rp.incomingRequests = rp.incomingRequests[rp.replicaBatchSize:]
 		} else {
 			proposals = rp.incomingRequests
-			rp.incomingRequests = make([]*proto.ClientBatch, 0)
+			rp.incomingRequests = make([]*ClientBatch, 0)
 		}
 		rp.sendPropose(proposals)
 		rp.lastProposedTime = time.Now()
@@ -30,18 +28,18 @@ func (rp *Replica) handleClientBatch(batch *proto.ClientBatch) {
 
 // call the state machine
 
-func (rp *Replica) updateApplicationLogic(requests []*proto.ClientBatch) []*proto.ClientBatch {
+func (rp *Replica) updateApplicationLogic(requests []*ClientBatch) []*ClientBatch {
 	return rp.state.Execute(requests)
 }
 
 // send back the client responses
 
-func (rp *Replica) sendClientResponses(responses []*proto.ClientBatch) {
+func (rp *Replica) sendClientResponses(responses []*ClientBatch) {
 	for i := 0; i < len(responses); i++ {
 		if responses[i].Sender == -1 {
 			continue
 		}
-		rp.sendMessage(int32(responses[i].Sender), common.RPCPair{
+		rp.sendMessage(int32(responses[i].Sender), RPCPair{
 			Code: rp.messageCodes.ClientBatchRpc,
 			Obj:  responses[i],
 		})
@@ -59,12 +57,12 @@ func (rp *Replica) sendDummyRequests(cancel chan bool) {
 				return
 			default:
 				time.Sleep(time.Duration(rp.viewTimeout/2) * time.Microsecond)
-				clientBatch := proto.ClientBatch{
+				clientBatch := ClientBatch{
 					UniqueId: "nil",
-					Requests: make([]*proto.SingleOperation, 0),
+					Requests: make([]*SingleOperation, 0),
 					Sender:   -1,
 				}
-				rp.sendMessage(rp.name, common.RPCPair{
+				rp.sendMessage(rp.name, RPCPair{
 					Code: rp.messageCodes.ClientBatchRpc,
 					Obj:  &clientBatch,
 				})

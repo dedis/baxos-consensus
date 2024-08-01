@@ -2,8 +2,7 @@ package src
 
 import (
 	"fmt"
-	"paxos_raft/common"
-	"paxos_raft/proto"
+	"paxos_raft/replica/src"
 	"time"
 )
 
@@ -11,7 +10,7 @@ import (
 	when a status response is received, print it to console
 */
 
-func (cl *Client) handleClientStatusResponse(response *proto.Status) {
+func (cl *Client) handleClientStatusResponse(response *src.Status) {
 	fmt.Printf("status response %v\n", response)
 }
 
@@ -24,13 +23,13 @@ func (cl *Client) SendStatus(operationType int) {
 
 	for name, _ := range cl.replicaAddrList {
 
-		statusRequest := proto.Status{
+		statusRequest := src.Status{
 			Type:   int32(operationType),
 			Note:   "",
 			Sender: int64(cl.clientName),
 		}
 
-		rpcPair := common.RPCPair{
+		rpcPair := src.RPCPair{
 			Code: cl.messageCodes.StatusRPC,
 			Obj:  &statusRequest,
 		}

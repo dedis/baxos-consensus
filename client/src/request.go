@@ -4,8 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"paxos_raft/common"
-	"paxos_raft/proto"
+	"paxos_raft/replica/src"
 	"strconv"
 	"time"
 	"unsafe"
@@ -15,7 +14,7 @@ import (
 	Upon receiving a client response, add the request to the received requests map
 */
 
-func (cl *Client) handleClientResponseBatch(batch *proto.ClientBatch) {
+func (cl *Client) handleClientResponseBatch(batch *src.ClientBatch) {
 	if cl.finished {
 		return
 	}
@@ -69,11 +68,11 @@ func (cl *Client) startRequestGenerators() {
 					return
 				}
 				numRequests := 0
-				var requests []*proto.SingleOperation
+				var requests []*src.SingleOperation
 				// this loop collects requests until the minimum batch size is met OR the batch time is timeout
 				for !(numRequests >= cl.clientBatchSize || (time.Now().Sub(lastSent).Microseconds() > int64(cl.clientBatchTime) && numRequests > 0)) {
 					_ = <-cl.arrivalChan // keep collecting new requests arrivals
-					requests = append(requests, &proto.SingleOperation{
+					requests = append(requests, &src.SingleOperation{
 						Command: fmt.Sprintf("%d%v%v", rand.Intn(2),
 							cl.RandString(cl.keyLen),
 							cl.RandString(cl.valueLen)),
@@ -89,21 +88,21 @@ func (cl *Client) startRequestGenerators() {
 
 				for i, _ := range cl.replicaAddrList {
 
-					var requests_i []*proto.SingleOperation
+					var requests_i []*src.SingleOperation
 
 					for j := 0; j < len(requests); j++ {
 						requests_i = append(requests_i, requests[j])
 					}
 
 					// create a new client batch
-					batch := proto.ClientBatch{
+					batch := src.ClientBatch{
 						UniqueId: strconv.Itoa(int(cl.clientName)) + "." + strconv.Itoa(threadNumber) + "." + strconv.Itoa(localCounter), // this is a unique string id,
 						Requests: requests_i,
 						Sender:   int64(cl.clientName),
 					}
 					//cl.debug("Sending "+strconv.Itoa(int(cl.clientName))+"."+strconv.Itoa(threadNumber)+"."+strconv.Itoa(localCounter)+" batch size "+strconv.Itoa(len(requests)), 0)
 
-					rpcPair := common.RPCPair{
+					rpcPair := src.RPCPair{
 						Code: cl.messageCodes.ClientBatchRpc,
 						Obj:  &batch,
 					}
@@ -111,7 +110,7 @@ func (cl *Client) startRequestGenerators() {
 					cl.sendMessage(i, rpcPair)
 				}
 
-				batch := proto.ClientBatch{
+				batch := src.ClientBatch{
 					UniqueId: strconv.Itoa(int(cl.clientName)) + "." + strconv.Itoa(threadNumber) + "." + strconv.Itoa(localCounter), // this is a unique string id,
 					Requests: requests,
 					Sender:   int64(cl.clientName),

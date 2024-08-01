@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"paxos_raft/common"
-	"paxos_raft/proto"
 	"strconv"
 )
 
@@ -83,7 +81,7 @@ func (rp *Replica) connectionListener(reader *bufio.Reader, id int32) {
 				//rp.debug("Error while unmarshalling from "+strconv.Itoa(int(id))+fmt.Sprintf(" %v", err), 0)
 				return
 			}
-			rp.incomingChan <- &common.RPCPair{
+			rp.incomingChan <- &RPCPair{
 				Code: msgType,
 				Obj:  obj,
 			}
@@ -151,27 +149,24 @@ func (rp *Replica) Run() {
 			switch replicaMessage.Code {
 
 			case rp.messageCodes.StatusRPC:
-				statusMessage := replicaMessage.Obj.(*proto.Status)
+				statusMessage := replicaMessage.Obj.(*Status)
 				//rp.debug("Status message from "+fmt.Sprintf("%#v", statusMessage.Sender), 0)
 				rp.handleStatus(statusMessage)
 				break
 
 			case rp.messageCodes.ClientBatchRpc:
-				clientBatch := replicaMessage.Obj.(*proto.ClientBatch)
+				clientBatch := replicaMessage.Obj.(*ClientBatch)
 				//rp.debug("Client batch message from "+fmt.Sprintf("%#v", clientBatch.Sender), 0)
 				rp.handleClientBatch(clientBatch)
 				break
 
 			case rp.messageCodes.PaxosConsensus:
-				paxosConsensusMessage := replicaMessage.Obj.(*proto.PaxosConsensus)
+				paxosConsensusMessage := replicaMessage.Obj.(*PaxosConsensus)
 				//rp.debug("Paxos consensus message from "+fmt.Sprintf("%#v", paxosConsensusMessage.Sender), 0)
 				rp.handlePaxosConsensus(paxosConsensusMessage)
 				break
 
 			}
-			break
-		case clientRespBatches := <-rp.requestsOut:
-			rp.sendClientResponses(clientRespBatches)
 			break
 		}
 
@@ -182,7 +177,7 @@ func (rp *Replica) Run() {
 	Write a message to the wire, first the message type is written and then the actual message
 */
 
-func (rp *Replica) internalSendMessage(peer int32, rpcPair *common.RPCPair) {
+func (rp *Replica) internalSendMessage(peer int32, rpcPair *RPCPair) {
 	peerType := rp.getNodeType(peer)
 	if peerType == "replica" {
 		w := rp.outgoingReplicaWriters[peer]
@@ -261,8 +256,8 @@ func (rp *Replica) StartOutgoingLinks() {
 	Add a new out-going message to the outgoing channel
 */
 
-func (rp *Replica) sendMessage(peer int32, rpcPair common.RPCPair) {
-	rp.outgoingMessageChan <- &common.OutgoingRPC{
+func (rp *Replica) sendMessage(peer int32, rpcPair RPCPair) {
+	rp.outgoingMessageChan <- &OutgoingRPC{
 		RpcPair: &rpcPair,
 		Peer:    peer,
 	}

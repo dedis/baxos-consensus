@@ -5,9 +5,6 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"paxos_raft/common"
-	"paxos_raft/configuration"
-	"paxos_raft/proto"
 	"strconv"
 	"sync"
 	"time"
@@ -33,17 +30,17 @@ type Replica struct {
 	outgoingReplicaWriters      map[int32]*bufio.Writer // socket writer for each replica
 	outgoingReplicaWriterMutexs map[int32]*sync.Mutex   // for mutual exclusion for each buffio.writer outgoingReplicaWriters
 
-	rpcTable     map[uint8]*common.RPCPair // map each RPC type (message type) to its unique number
-	messageCodes proto.MessageCode
+	rpcTable     map[uint8]*RPCPair // map each RPC type (message type) to its unique number
+	messageCodes MessageCode
 
-	incomingChan chan *common.RPCPair // used to collect all the incoming messages
+	incomingChan chan *RPCPair // used to collect all the incoming messages
 
 	logFilePath string // the path to write the log, used for sanity checks
 
 	replicaBatchSize int // maximum replica side batch size
 	replicaBatchTime int // maximum replica side batch time in micro seconds
 
-	outgoingMessageChan chan *common.OutgoingRPC // buffer for messages that are written to the wire
+	outgoingMessageChan chan *OutgoingRPC // buffer for messages that are written to the wire
 
 	debugOn    bool // if turned on, the debug messages will be printed on the console
 	debugLevel int  // current debug level
@@ -60,13 +57,12 @@ type Replica struct {
 	benchmarkMode int        // 0 for resident K/V store, 1 for redis
 	state         *Benchmark // k/v store
 
-	incomingRequests []*proto.ClientBatch
+	incomingRequests []*ClientBatch
 	pipelineLength   int
 
 	lastProposedTime time.Time
 
-	requestsIn  chan []*proto.ClientBatch
-	requestsOut chan []*proto.ClientBatch // for raft client responses
+	requestsIn chan []*ClientBatch
 
 	cancel                 chan bool // to cancel the dummy client requests and the raft failure detector
 	isAsynchronous         bool
@@ -83,10 +79,10 @@ const outgoingBufferSize = 100000000 // size of the buffer that collects message
 	instantiate a new replica instance, allocate the buffers
 */
 
-func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, replicaBatchSize int, replicaBatchTime int, debugOn bool, debugLevel int, viewTimeout int, benchmarkMode int, keyLen int, valLen int, pipelineLength int, isAsync bool, asyncTimeout int, timeEpochSize int) *Replica {
+func New(name int32, cfg *InstanceConfig, logFilePath string, replicaBatchSize int, replicaBatchTime int, debugOn bool, debugLevel int, viewTimeout int, benchmarkMode int, keyLen int, valLen int, pipelineLength int, isAsync bool, asyncTimeout int, timeEpochSize int) *Replica {
 	rp := Replica{
 		name:          name,
-		listenAddress: common.GetAddress(cfg.Peers, name),
+		listenAddress: GetAddress(cfg.Peers, name),
 		numReplicas:   len(cfg.Peers),
 
 		clientAddrList:             make(map[int32]string),
@@ -99,17 +95,17 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		outgoingReplicaWriters:      make(map[int32]*bufio.Writer),
 		outgoingReplicaWriterMutexs: make(map[int32]*sync.Mutex),
 
-		rpcTable:     make(map[uint8]*common.RPCPair),
-		messageCodes: proto.GetRPCCodes(),
+		rpcTable:     make(map[uint8]*RPCPair),
+		messageCodes: GetRPCCodes(),
 
-		incomingChan: make(chan *common.RPCPair, incomingBufferSize),
+		incomingChan: make(chan *RPCPair, incomingBufferSize),
 
 		logFilePath: logFilePath,
 
 		replicaBatchSize: replicaBatchSize,
 		replicaBatchTime: replicaBatchTime,
 
-		outgoingMessageChan:    make(chan *common.OutgoingRPC, outgoingBufferSize),
+		outgoingMessageChan:    make(chan *OutgoingRPC, outgoingBufferSize),
 		debugOn:                debugOn,
 		debugLevel:             debugLevel,
 		serverStarted:          false,
@@ -118,10 +114,9 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		logPrinted:             false,
 		benchmarkMode:          benchmarkMode,
 		state:                  Init(benchmarkMode, name, keyLen, valLen),
-		incomingRequests:       make([]*proto.ClientBatch, 0),
+		incomingRequests:       make([]*ClientBatch, 0),
 		pipelineLength:         pipelineLength,
-		requestsIn:             make(chan []*proto.ClientBatch),
-		requestsOut:            make(chan []*proto.ClientBatch, incomingBufferSize),
+		requestsIn:             make(chan []*ClientBatch),
 		cancel:                 make(chan bool, 7),
 		isAsynchronous:         isAsync,
 		asyncSimulationTimeout: asyncTimeout,
@@ -146,9 +141,9 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 	/*
 		Register the rpcs
 	*/
-	rp.RegisterRPC(new(proto.ClientBatch), rp.messageCodes.ClientBatchRpc)
-	rp.RegisterRPC(new(proto.Status), rp.messageCodes.StatusRPC)
-	rp.RegisterRPC(new(proto.PaxosConsensus), rp.messageCodes.PaxosConsensus)
+	rp.RegisterRPC(new(ClientBatch), rp.messageCodes.ClientBatchRpc)
+	rp.RegisterRPC(new(Status), rp.messageCodes.StatusRPC)
+	rp.RegisterRPC(new(PaxosConsensus), rp.messageCodes.PaxosConsensus)
 
 	rand.Seed(time.Now().UnixNano() + int64(rp.name))
 
@@ -215,8 +210,8 @@ func (rp *Replica) amIAttacked(epoch int) bool {
 	Fill the RPC table by assigning a unique id to each message type
 */
 
-func (rp *Replica) RegisterRPC(msgObj proto.Serializable, code uint8) {
-	rp.rpcTable[code] = &common.RPCPair{Code: code, Obj: msgObj}
+func (rp *Replica) RegisterRPC(msgObj Serializable, code uint8) {
+	rp.rpcTable[code] = &RPCPair{Code: code, Obj: msgObj}
 }
 
 /*

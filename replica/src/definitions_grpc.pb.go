@@ -11,7 +11,6 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	"paxos_raft/proto"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -23,8 +22,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ConsensusClient interface {
-	AppendEntries(ctx context.Context, in *proto.AppendRequest, opts ...grpc.CallOption) (*proto.AppendResponse, error)
-	RequestVote(ctx context.Context, in *proto.LeaderRequest, opts ...grpc.CallOption) (*proto.LeaderResponse, error)
+	AppendEntries(ctx context.Context, in *AppendRequest, opts ...grpc.CallOption) (*AppendResponse, error)
+	RequestVote(ctx context.Context, in *LeaderRequest, opts ...grpc.CallOption) (*LeaderResponse, error)
 }
 
 type consensusClient struct {
@@ -35,8 +34,8 @@ func NewConsensusClient(cc grpc.ClientConnInterface) ConsensusClient {
 	return &consensusClient{cc}
 }
 
-func (c *consensusClient) AppendEntries(ctx context.Context, in *proto.AppendRequest, opts ...grpc.CallOption) (*proto.AppendResponse, error) {
-	out := new(proto.AppendResponse)
+func (c *consensusClient) AppendEntries(ctx context.Context, in *AppendRequest, opts ...grpc.CallOption) (*AppendResponse, error) {
+	out := new(AppendResponse)
 	err := c.cc.Invoke(ctx, "/Consensus/AppendEntries", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -44,8 +43,8 @@ func (c *consensusClient) AppendEntries(ctx context.Context, in *proto.AppendReq
 	return out, nil
 }
 
-func (c *consensusClient) RequestVote(ctx context.Context, in *proto.LeaderRequest, opts ...grpc.CallOption) (*proto.LeaderResponse, error) {
-	out := new(proto.LeaderResponse)
+func (c *consensusClient) RequestVote(ctx context.Context, in *LeaderRequest, opts ...grpc.CallOption) (*LeaderResponse, error) {
+	out := new(LeaderResponse)
 	err := c.cc.Invoke(ctx, "/Consensus/RequestVote", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -57,8 +56,8 @@ func (c *consensusClient) RequestVote(ctx context.Context, in *proto.LeaderReque
 // All implementations must embed UnimplementedConsensusServer
 // for forward compatibility
 type ConsensusServer interface {
-	AppendEntries(context.Context, *proto.AppendRequest) (*proto.AppendResponse, error)
-	RequestVote(context.Context, *proto.LeaderRequest) (*proto.LeaderResponse, error)
+	AppendEntries(context.Context, *AppendRequest) (*AppendResponse, error)
+	RequestVote(context.Context, *LeaderRequest) (*LeaderResponse, error)
 	mustEmbedUnimplementedConsensusServer()
 }
 
@@ -66,10 +65,10 @@ type ConsensusServer interface {
 type UnimplementedConsensusServer struct {
 }
 
-func (UnimplementedConsensusServer) AppendEntries(context.Context, *proto.AppendRequest) (*proto.AppendResponse, error) {
+func (UnimplementedConsensusServer) AppendEntries(context.Context, *AppendRequest) (*AppendResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AppendEntries not implemented")
 }
-func (UnimplementedConsensusServer) RequestVote(context.Context, *proto.LeaderRequest) (*proto.LeaderResponse, error) {
+func (UnimplementedConsensusServer) RequestVote(context.Context, *LeaderRequest) (*LeaderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RequestVote not implemented")
 }
 func (UnimplementedConsensusServer) mustEmbedUnimplementedConsensusServer() {}
@@ -86,7 +85,7 @@ func RegisterConsensusServer(s grpc.ServiceRegistrar, srv ConsensusServer) {
 }
 
 func _Consensus_AppendEntries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(proto.AppendRequest)
+	in := new(AppendRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -98,13 +97,13 @@ func _Consensus_AppendEntries_Handler(srv interface{}, ctx context.Context, dec 
 		FullMethod: "/Consensus/AppendEntries",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ConsensusServer).AppendEntries(ctx, req.(*proto.AppendRequest))
+		return srv.(ConsensusServer).AppendEntries(ctx, req.(*AppendRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Consensus_RequestVote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(proto.LeaderRequest)
+	in := new(LeaderRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -116,7 +115,7 @@ func _Consensus_RequestVote_Handler(srv interface{}, ctx context.Context, dec fu
 		FullMethod: "/Consensus/RequestVote",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ConsensusServer).RequestVote(ctx, req.(*proto.LeaderRequest))
+		return srv.(ConsensusServer).RequestVote(ctx, req.(*LeaderRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

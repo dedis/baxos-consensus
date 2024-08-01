@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
-	"paxos_raft/common"
-	"paxos_raft/configuration"
-	"paxos_raft/proto"
+	"paxos_raft/replica/src"
 	"strconv"
 	"sync"
 	"time"
@@ -26,16 +24,16 @@ type Client struct {
 	outgoingReplicaWriters      map[int32]*bufio.Writer // socket writer for each replica
 	outgoingReplicaWriterMutexs map[int32]*sync.Mutex   // for mutual exclusion for each buffio.writer outgoingReplicaWriters
 
-	rpcTable     map[uint8]*common.RPCPair // map each RPC type (message type) to its unique number
-	incomingChan chan *common.RPCPair      // used to collect ClientBatch messages for responses and Status messages for responses
+	rpcTable     map[uint8]*src.RPCPair // map each RPC type (message type) to its unique number
+	incomingChan chan *src.RPCPair      // used to collect ClientBatch messages for responses and Status messages for responses
 
-	messageCodes proto.MessageCode
+	messageCodes src.MessageCode
 	logFilePath  string // the path to write the requests and responses time, used for sanity checks
 
 	clientBatchSize int // maximum client side batch size
 	clientBatchTime int // maximum client side batch time in micro seconds
 
-	outgoingMessageChan chan *common.OutgoingRPC // buffer for messages that are written to the wire
+	outgoingMessageChan chan *src.OutgoingRPC // buffer for messages that are written to the wire
 
 	debugOn    bool // if turned on, the debug messages will be printed on the console
 	debugLevel int  // current debug level
@@ -66,7 +64,7 @@ type Client struct {
 */
 
 type requestBatch struct {
-	batch proto.ClientBatch
+	batch src.ClientBatch
 	time  time.Time
 }
 
@@ -81,7 +79,7 @@ const arrivalBufferSize = 1000000     // size of the buffer that collects new re
 	Instantiate a new Client instance, allocate the buffers
 */
 
-func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clientBatchSize int, clientBatchTime int, testDuration int, arrivalRate int, requestType string, operationType int, debugOn bool, debugLevel int, keyLen int, valLen int, window int64) *Client {
+func New(name int32, cfg *src.InstanceConfig, logFilePath string, clientBatchSize int, clientBatchTime int, testDuration int, arrivalRate int, requestType string, operationType int, debugOn bool, debugLevel int, keyLen int, valLen int, window int64) *Client {
 	cl := Client{
 		clientName:                  name,
 		numReplicas:                 len(cfg.Peers),
@@ -89,13 +87,13 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clie
 		incomingReplicaReaders:      make(map[int32]*bufio.Reader),
 		outgoingReplicaWriters:      make(map[int32]*bufio.Writer),
 		outgoingReplicaWriterMutexs: make(map[int32]*sync.Mutex),
-		rpcTable:                    make(map[uint8]*common.RPCPair),
-		incomingChan:                make(chan *common.RPCPair, incomingBufferSize),
-		messageCodes:                proto.GetRPCCodes(),
+		rpcTable:                    make(map[uint8]*src.RPCPair),
+		incomingChan:                make(chan *src.RPCPair, incomingBufferSize),
+		messageCodes:                src.GetRPCCodes(),
 		logFilePath:                 logFilePath,
 		clientBatchSize:             clientBatchSize,
 		clientBatchTime:             clientBatchTime,
-		outgoingMessageChan:         make(chan *common.OutgoingRPC, outgoingBufferSize),
+		outgoingMessageChan:         make(chan *src.OutgoingRPC, outgoingBufferSize),
 
 		debugOn:    debugOn,
 		debugLevel: debugLevel,
@@ -109,7 +107,7 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clie
 		sentRequests:        make([][]requestBatch, numRequestGenerationThreads),
 		receivedResponses:   make(map[string]requestBatch),
 		startTime:           time.Time{},
-		clientListenAddress: common.GetAddress(cfg.Clients, name),
+		clientListenAddress: src.GetAddress(cfg.Clients, name),
 		keyLen:              keyLen,
 		valueLen:            valLen,
 		finished:            false,
@@ -131,8 +129,8 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clie
 	/*
 		Register the rpcs
 	*/
-	cl.RegisterRPC(new(proto.ClientBatch), cl.messageCodes.ClientBatchRpc)
-	cl.RegisterRPC(new(proto.Status), cl.messageCodes.StatusRPC)
+	cl.RegisterRPC(new(src.ClientBatch), cl.messageCodes.ClientBatchRpc)
+	cl.RegisterRPC(new(src.Status), cl.messageCodes.StatusRPC)
 
 	//cl.debug("Registered RPCs in the table", 0)
 
@@ -149,8 +147,8 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, clie
 	fill the RPC table by assigning a unique id to each message type
 */
 
-func (cl *Client) RegisterRPC(msgObj proto.Serializable, code uint8) {
-	cl.rpcTable[code] = &common.RPCPair{Code: code, Obj: msgObj}
+func (cl *Client) RegisterRPC(msgObj src.Serializable, code uint8) {
+	cl.rpcTable[code] = &src.RPCPair{Code: code, Obj: msgObj}
 }
 
 //func (cl *Client) debug(message string, level int) {

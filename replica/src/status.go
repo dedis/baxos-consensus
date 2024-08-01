@@ -2,8 +2,6 @@ package src
 
 import (
 	"fmt"
-	"paxos_raft/common"
-	"paxos_raft/proto"
 	"time"
 )
 
@@ -13,7 +11,7 @@ import (
 		2. Send a response back to the sender
 */
 
-func (rp *Replica) handleStatus(message *proto.Status) {
+func (rp *Replica) handleStatus(message *Status) {
 	fmt.Print("Status  " + fmt.Sprintf("%v", message) + " \n")
 	if message.Type == 1 {
 		if rp.serverStarted == false {
@@ -50,12 +48,12 @@ func (rp *Replica) handleStatus(message *proto.Status) {
 
 	//rp.debug("Sending status reply ", 0)
 
-	statusMessage := proto.Status{
+	statusMessage := Status{
 		Type: message.Type,
 		Note: message.Note,
 	}
 
-	rpcPair := common.RPCPair{
+	rpcPair := RPCPair{
 		Code: rp.messageCodes.StatusRPC,
 		Obj:  &statusMessage,
 	}

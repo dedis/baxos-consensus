@@ -6,8 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"paxos_raft/common"
-	"paxos_raft/proto"
+	"paxos_raft/replica/src"
 	"strconv"
 )
 
@@ -96,7 +95,7 @@ func (cl *Client) connectionListener(reader *bufio.Reader, id int32) {
 				//cl.debug("error while unmarshalling from "+strconv.Itoa(int(id)), 0)
 				return
 			}
-			cl.incomingChan <- &common.RPCPair{
+			cl.incomingChan <- &src.RPCPair{
 				Code: msgType,
 				Obj:  obj,
 			}
@@ -124,13 +123,13 @@ func (cl *Client) Run() {
 
 			switch replicaMessage.Code {
 			case cl.messageCodes.ClientBatchRpc:
-				clientResponseBatch := replicaMessage.Obj.(*proto.ClientBatch)
+				clientResponseBatch := replicaMessage.Obj.(*src.ClientBatch)
 				//cl.debug("Client response batch from "+strconv.Itoa(int(clientResponseBatch.Sender)), 0)
 				cl.handleClientResponseBatch(clientResponseBatch)
 				break
 
 			case cl.messageCodes.StatusRPC:
-				clientStatusResponse := replicaMessage.Obj.(*proto.Status)
+				clientStatusResponse := replicaMessage.Obj.(*src.Status)
 				//cl.debug("Client status "+fmt.Sprintf("%#v", clientStatusResponse), 0)
 				cl.handleClientStatusResponse(clientStatusResponse)
 				break
@@ -143,7 +142,7 @@ func (cl *Client) Run() {
 	write a message to the wire, first the message type is written and then the actual message
 */
 
-func (cl *Client) internalSendMessage(peer int32, rpcPair *common.RPCPair) {
+func (cl *Client) internalSendMessage(peer int32, rpcPair *src.RPCPair) {
 	w := cl.outgoingReplicaWriters[peer]
 	cl.outgoingReplicaWriterMutexs[peer].Lock()
 	err := w.WriteByte(rpcPair.Code)
@@ -188,8 +187,8 @@ func (cl *Client) StartOutgoingLinks() {
 	Add a new out-going message to the outgoing channel
 */
 
-func (cl *Client) sendMessage(peer int32, rpcPair common.RPCPair) {
-	cl.outgoingMessageChan <- &common.OutgoingRPC{
+func (cl *Client) sendMessage(peer int32, rpcPair src.RPCPair) {
+	cl.outgoingMessageChan <- &src.OutgoingRPC{
 		RpcPair: &rpcPair,
 		Peer:    peer,
 	}

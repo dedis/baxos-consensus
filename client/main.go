@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"paxos_raft/client/src"
-	"paxos_raft/configuration"
+	src2 "paxos_raft/replica/src"
 	"time"
 )
 
@@ -25,7 +25,7 @@ func main() {
 
 	flag.Parse()
 
-	cfg, err := configuration.NewInstanceConfig(*configFile, *name)
+	cfg, err := src2.NewInstanceConfig(*configFile, *name)
 	if err != nil {
 		panic(err.Error())
 	}

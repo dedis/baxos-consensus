@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"github.com/montanaflynn/stats"
 	"os"
-	"paxos_raft/proto"
+	"paxos_raft/replica/src"
 	"strconv"
 )
 
 const CLIENT_TIMEOUT = 2000000
 
 /*
-	calculate the number of elements in the 2d array
+calculate the number of elements in the 2d array
 */
 func (cl *Client) getNumberOfSentRequests(requests [][]requestBatch) int {
 	count := 0
@@ -125,7 +125,7 @@ func (cl *Client) getFloat64List(list []int64) []float64 {
 	print a client request batch with arrival time and end time w.r.t test start time
 */
 
-func (cl *Client) printRequests(messages proto.ClientBatch, startTime int64, endTime int64, f *os.File) {
+func (cl *Client) printRequests(messages src.ClientBatch, startTime int64, endTime int64, f *os.File) {
 	for i := 0; i < len(messages.Requests); i++ {
 		_, _ = f.WriteString(messages.Requests[i].Command + "," + strconv.Itoa(int(startTime)) + "," + strconv.Itoa(int(endTime)) + "\n")
 	}
