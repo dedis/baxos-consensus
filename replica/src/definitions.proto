@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package = "proto/";
+option go_package = "replica/src/";
 
 /*
   Client batch refers to a client request batch, or a client response batch
@@ -39,47 +39,38 @@ message Status {
   int64 sender = 3;
 }
 
-// instance serves as a container for 1) promise response for accepted value, 2) decided entries
-
-message instance{
-  int32 instance_number = 1;
-  int32 ballot = 2;
-  ReplicaBatch value = 3;
-}
-
 message PrepareRequest {
   int32 instance_number = 1;
-  int32 ballot = 2;
-
-  instance last_decided = 3; // for instance_numer - 1 if the slot is already decided
+  int32 prepare_ballot = 2;
 }
 
 message PromiseReply {
-  bool promise = 1;
+  int32 instance_number = 1;
+  bool promise = 2;
+  int64 last_promised_ballot = 3;
 
-  int64 last_promised_ballot = 2;
+  int64 last_accepted_ballot = 4;
+  ReplicaBatch last_accepted_value = 5;
 
-  bool decided = 3; // if the current instance is already decided
-  instance decided_value = 4;
-
-  instance last_accepted_instance = 5;
+  bool decided = 6; // if the current instance is already decided
+  ReplicaBatch decided_value = 7;
 }
 
 message ProposeRequest {
-
-
-
   int32 instance_number = 1;
-  int32 ballot = 2;
-  ReplicaBatch value = 3;
+  int32 propose_ballot = 2;
+  ReplicaBatch propose_value = 3;
+
+  PrepareRequest prepare_request_for_future_index = 4;
 }
 
 message AcceptReply {
-  bool accept = 1;
-  int64 last_promised_ballot = 2;
-}
+  int32 instance_number = 1;
+  bool accept = 2;
+  int64 accept_ballot = 3;
 
-service Consensus {
-  rpc phase_1 (PrepareRequest) returns (PromiseReply);
-  rpc phase_2 (ProposeRequest) returns (AcceptReply);
+  bool decided = 4; // if the current instance is already decided
+  ReplicaBatch decided_value = 5;
+
+  PromiseReply promise_reply_for_future_index = 6;
 }
