@@ -51,14 +51,11 @@ type Replica struct {
 	serverStarted bool // to bootstrap
 
 	paxosConsensus *Paxos // Paxos consensus data structs
-	raftConsensus  *Raft  // Raft consensus data structs
 
 	consensusStarted bool
 	viewTimeout      int // view change timeout in micro seconds
 
 	logPrinted bool // to check if log was printed before
-
-	consAlgo string // raft/paxos
 
 	benchmarkMode int        // 0 for resident K/V store, 1 for redis
 	state         *Benchmark // k/v store
@@ -86,7 +83,7 @@ const outgoingBufferSize = 100000000 // size of the buffer that collects message
 	instantiate a new replica instance, allocate the buffers
 */
 
-func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, replicaBatchSize int, replicaBatchTime int, debugOn bool, debugLevel int, viewTimeout int, consAlgo string, benchmarkMode int, keyLen int, valLen int, pipelineLength int, isAsync bool, asyncTimeout int, timeEpochSize int) *Replica {
+func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, replicaBatchSize int, replicaBatchTime int, debugOn bool, debugLevel int, viewTimeout int, benchmarkMode int, keyLen int, valLen int, pipelineLength int, isAsync bool, asyncTimeout int, timeEpochSize int) *Replica {
 	rp := Replica{
 		name:          name,
 		listenAddress: common.GetAddress(cfg.Peers, name),
@@ -119,7 +116,6 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		consensusStarted:       false,
 		viewTimeout:            viewTimeout,
 		logPrinted:             false,
-		consAlgo:               consAlgo,
 		benchmarkMode:          benchmarkMode,
 		state:                  Init(benchmarkMode, name, keyLen, valLen),
 		incomingRequests:       make([]*proto.ClientBatch, 0),
@@ -158,14 +154,6 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 
 	//rp.debug("Registered RPCs in the table", 0)
 
-	gAddress := ""
-	for i := 0; i < len(cfg.Peers); i++ {
-		if cfg.Peers[i].Name == strconv.Itoa(int(name)) {
-			gAddress = cfg.Peers[i].GAddress
-			break
-		}
-	}
-
 	if rp.isAsynchronous {
 		// initialize the attack replicas for each time epoch, we assume a total number of time of the run to be 10 minutes just for convenience, but this does not affect the correctness
 		numEpochs := 10 * 60 * 1000 / rp.timeEpochSize
@@ -188,16 +176,10 @@ func New(name int32, cfg *configuration.InstanceConfig, logFilePath string, repl
 		}
 	}
 
-	if rp.consAlgo == "raft" {
-		rp.raftConsensus = NewRaft(name, *cfg, debugOn, debugLevel, gAddress, int64(len(cfg.Peers)), int64(viewTimeout), logFilePath, rp.requestsIn, rp.requestsOut, &rp, rp.cancel)
-	} else if rp.consAlgo == "paxos" {
-		rp.paxosConsensus = InitPaxosConsensus(name, &rp, pipelineLength, isAsync, asyncTimeout)
-	} else {
-		panic("should not happen")
-	}
+	rp.paxosConsensus = InitPaxosConsensus(name, &rp, pipelineLength, isAsync, asyncTimeout)
 
 	pid := os.Getpid()
-	fmt.Printf("--Initialized %v replica %v with process id: %v \n", consAlgo, name, pid)
+	fmt.Printf("--Initialized replica %v with process id: %v \n", name, pid)
 
 	return &rp
 }

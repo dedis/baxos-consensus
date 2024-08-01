@@ -33,12 +33,7 @@ func (rp *Replica) handleStatus(message *proto.Status) {
 				}
 			}()
 
-			if rp.consAlgo == "paxos" {
-				rp.printPaxosLogConsensus() // this is for consensus testing purposes
-			}
-			if rp.consAlgo == "raft" {
-				rp.printRaftLogConsensus() // this is for consensus testing purposes
-			}
+			rp.printPaxosLogConsensus() // this is for consensus testing purposes
 
 			//fmt.Printf("num go routines: %v \n", runtime.NumGoroutine())
 		}
@@ -47,18 +42,9 @@ func (rp *Replica) handleStatus(message *proto.Status) {
 			rp.consensusStarted = true
 			rp.lastProposedTime = time.Now()
 			rp.sendDummyRequests(rp.cancel)
-			if rp.consAlgo == "paxos" {
-				rp.paxosConsensus.run()
-				//rp.debug("started paxos consensus with initial prepare", 0)
-			} else if rp.consAlgo == "raft" {
-				rp.raftConsensus.NetworkInit()
-				time.Sleep(time.Duration(2) * time.Second)
-				rp.raftConsensus.SetupgRPC()
-				time.Sleep(time.Duration(2) * time.Second)
-				rp.raftConsensus.proposeBatch()
-				//rp.debug("started raft consensus with initial prepare", 0)
-				rp.raftConsensus.startTime = time.Now()
-			}
+			rp.paxosConsensus.run()
+			//rp.debug("started paxos consensus with initial prepare", 0)
+
 		}
 	}
 

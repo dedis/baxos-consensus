@@ -11,7 +11,6 @@ import (
 func main() {
 	name := flag.Int64("name", 1, "name of the replica as specified in the configuration.yml")
 	configFile := flag.String("config", "configuration/local/configuration.yml", "configuration file")
-	consAlgo := flag.String("consAlgo", "paxos", "consensus algo [raft, paxos]")
 	logFilePath := flag.String("logFilePath", "logs/", "log file path")
 	batchSize := flag.Int("batchSize", 50, "batch size")
 	batchTime := flag.Int("batchTime", 5000, "maximum time to wait for collecting a batch of requests in micro seconds")
@@ -34,7 +33,7 @@ func main() {
 		panic(err)
 	}
 
-	rp := src.New(int32(*name), cfg, *logFilePath, *batchSize, *batchTime, *debugOn, *debugLevel, *viewTimeout, *consAlgo, *benchmarkMode, *keyLen, *valLen, *pipelineLength, *isAsync, *asyncTimeout, *timeEpochSize)
+	rp := src.New(int32(*name), cfg, *logFilePath, *batchSize, *batchTime, *debugOn, *debugLevel, *viewTimeout, *benchmarkMode, *keyLen, *valLen, *pipelineLength, *isAsync, *asyncTimeout, *timeEpochSize)
 
 	rp.WaitForConnections()
 	rp.StartOutgoingLinks()

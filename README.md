@@ -1,4 +1,4 @@
-# Paxos and Raft
+# Baxos Consensus
 
 This repository implements Baxos consensus.
 

@@ -20,18 +20,7 @@ func (rp *Replica) handleClientBatch(batch *proto.ClientBatch) {
 			proposals = rp.incomingRequests
 			rp.incomingRequests = make([]*proto.ClientBatch, 0)
 		}
-		if rp.consAlgo == "paxos" {
-			rp.sendPropose(proposals)
-		} else if rp.consAlgo == "raft" {
-			select {
-			case rp.requestsIn <- proposals:
-				// message sent
-				break
-			default:
-				rp.incomingRequests = append(rp.incomingRequests, proposals...)
-				break
-			}
-		}
+		rp.sendPropose(proposals)
 		rp.lastProposedTime = time.Now()
 	} else {
 		//rp.debug("Still did not invoke propose from smr, num client batches = "+strconv.Itoa(int(len(rp.incomingRequests)))+" ,time since last proposal "+strconv.Itoa(int(time.Now().Sub(rp.lastProposedTime).Microseconds())), 0)
