@@ -17,15 +17,6 @@ type RPCPair struct {
 }
 
 /*
-	Outgoing RPC assigns a rpc to its intended destination
-*/
-
-type OutgoingRPC struct {
-	RpcPair *RPCPair
-	Peer    int32
-}
-
-/*
 	Returns the self ip:port
 */
 

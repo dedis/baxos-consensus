@@ -16,7 +16,7 @@ import (
 */
 
 type Client struct {
-	clientName  int32 // unique client identifier as defined in the configuration.yml
+	clientName  int32 // unique client identifier as defined in the local-configuration.yml
 	numReplicas int   // number of replicas
 
 	replicaAddrList             map[int32]string        // map with the IP:port address of every replica node

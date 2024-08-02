@@ -15,7 +15,7 @@ import (
 */
 
 type Replica struct {
-	name          int32  // unique replica identifier as defined in the configuration.yml
+	name          int32  // unique replica identifier as defined in the local-configuration.yml
 	listenAddress string // TCP address to which the replica listens to new incoming TCP connections
 
 	numReplicas int

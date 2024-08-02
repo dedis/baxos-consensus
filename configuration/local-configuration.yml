@@ -1,0 +1,23 @@
+peers:
+   - name: 1
+     address: 127.0.0.1:10001
+   - name: 2
+     address: 127.0.0.1:10002
+   - name: 3
+     address: 127.0.0.1:10003
+   - name: 4
+     address: 127.0.0.1:10004
+   - name: 5
+     address: 127.0.0.1:10005
+
+clients:
+   - name: 51
+     address: 127.0.0.1:12001
+   - name: 52
+     address: 127.0.0.1:12002
+   - name: 53
+     address: 127.0.0.1:12003
+   - name: 54
+     address: 127.0.0.1:12004
+   - name: 55
+     address: 127.0.0.1:12005

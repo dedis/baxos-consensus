@@ -1,15 +1,16 @@
-package src
+package tests
 
 import (
 	"bytes"
+	"paxos_raft/replica/src"
 	"testing"
 )
 
 func TestClientBatchMarshalUnmarshal(t *testing.T) {
 	// Step 1: Generate a ClientBatch
 
-	requests := []*SingleOperation{{Command: "a"}, {Command: "b"}}
-	originalClientBatch := &ClientBatch{
+	requests := []*src.SingleOperation{{Command: "a"}, {Command: "b"}}
+	originalClientBatch := &src.ClientBatch{
 		UniqueId: "a",
 		Requests: requests,
 		Sender:   1,
@@ -23,7 +24,7 @@ func TestClientBatchMarshalUnmarshal(t *testing.T) {
 	}
 
 	// Step 3: Unmarshal into a new ClientBatch
-	newClientBatch := &ClientBatch{}
+	newClientBatch := &src.ClientBatch{}
 	err = newClientBatch.Unmarshal(&buf)
 	if err != nil {
 		t.Fatalf("Failed to unmarshal ClientBatch: %v", err)
@@ -36,7 +37,7 @@ func TestClientBatchMarshalUnmarshal(t *testing.T) {
 }
 
 // isEqual compares two ClientBatch objects for equality.
-func isEqual(a, b *ClientBatch) bool {
+func isEqual(a, b *src.ClientBatch) bool {
 	if a.Sender != b.Sender {
 		return false
 	}

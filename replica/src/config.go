@@ -13,9 +13,8 @@ import (
 
 // Instance describes a single  instance connection information
 type Instance struct {
-	Name     string `yaml:"name"`
-	Address  string `yaml:"address"`  // address should be in the form x.x.x.x:yyyy
-	GAddress string `yaml:"gaddress"` // gaddress should be in the form x.x.x.x:yyyy
+	Name    string `yaml:"name"`
+	Address string `yaml:"address"` // address should be in the form x.x.x.x:yyyy
 }
 
 // InstanceConfig describes the set of peers and clients in the system
@@ -47,14 +46,12 @@ func configureSelfIP(cfg InstanceConfig, name int64) InstanceConfig {
 	for i := 0; i < len(cfg.Peers); i++ {
 		if cfg.Peers[i].Name == strconv.Itoa(int(name)) {
 			cfg.Peers[i].Address = "0.0.0.0:" + getPort(cfg.Peers[i].Address)
-			cfg.Peers[i].GAddress = "0.0.0.0:" + getPort(cfg.Peers[i].GAddress)
 			return cfg
 		}
 	}
 	for i := 0; i < len(cfg.Clients); i++ {
 		if cfg.Clients[i].Name == strconv.Itoa(int(name)) {
 			cfg.Clients[i].Address = "0.0.0.0:" + getPort(cfg.Clients[i].Address)
-			cfg.Clients[i].GAddress = "0.0.0.0:" + getPort(cfg.Clients[i].GAddress)
 			return cfg
 		}
 	}
