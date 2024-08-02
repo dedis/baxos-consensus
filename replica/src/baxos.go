@@ -64,7 +64,7 @@ type Baxos struct {
 	init Paxos Consensus data structs
 */
 
-func InitPaxosConsensus(name int32, replica *Replica, isAsync bool, asyncTimeout int) *Paxos {
+func InitBaxosConsensus(name int32, replica *Replica, isAsync bool, asyncTimeout int) *Paxos {
 
 	replicatedLog := make([]PaxosInstance, 0)
 	// create the genesis slot

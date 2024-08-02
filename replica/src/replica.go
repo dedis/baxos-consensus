@@ -48,10 +48,9 @@ type Replica struct {
 
 	serverStarted bool // to bootstrap
 
-	paxosConsensus *Paxos // Paxos consensus data structs
+	baxosConsensus *Baxos // Baxos consensus data structs
 
 	consensusStarted bool
-	viewTimeout      int // view change timeout in micro seconds
 
 	logPrinted bool // to check if log was printed before
 
@@ -59,13 +58,9 @@ type Replica struct {
 	state         *Benchmark // k/v store
 
 	incomingRequests []*common.ClientBatch
-	pipelineLength   int
 
 	lastProposedTime time.Time
 
-	requestsIn chan []*common.ClientBatch
-
-	cancel                 chan bool // to cancel the dummy client requests and the raft failure detector
 	isAsynchronous         bool
 	asyncSimulationTimeout int
 	asynchronousReplicas   map[int][]int // for each time based epoch, the minority replicas that are attacked
@@ -80,7 +75,7 @@ const outgoingBufferSize = 100000000 // size of the buffer that collects message
 	instantiate a new replica instance, allocate the buffers
 */
 
-func New(name int32, cfg *common.InstanceConfig, logFilePath string, replicaBatchSize int, replicaBatchTime int, debugOn bool, debugLevel int, viewTimeout int, benchmarkMode int, keyLen int, valLen int, pipelineLength int, isAsync bool, asyncTimeout int, timeEpochSize int) *Replica {
+func New(name int32, cfg *common.InstanceConfig, logFilePath string, replicaBatchSize int, replicaBatchTime int, debugOn bool, debugLevel int, benchmarkMode int, keyLen int, valLen int, isAsync bool, asyncTimeout int, timeEpochSize int) *Replica {
 	rp := Replica{
 		name:          name,
 		listenAddress: common.GetAddress(cfg.Peers, name),
@@ -106,19 +101,18 @@ func New(name int32, cfg *common.InstanceConfig, logFilePath string, replicaBatc
 		replicaBatchSize: replicaBatchSize,
 		replicaBatchTime: replicaBatchTime,
 
-		outgoingMessageChan:    make(chan *common.OutgoingRPC, outgoingBufferSize),
-		debugOn:                debugOn,
-		debugLevel:             debugLevel,
-		serverStarted:          false,
-		consensusStarted:       false,
-		viewTimeout:            viewTimeout,
-		logPrinted:             false,
-		benchmarkMode:          benchmarkMode,
-		state:                  Init(benchmarkMode, name, keyLen, valLen),
-		incomingRequests:       make([]*common.ClientBatch, 0),
-		pipelineLength:         pipelineLength,
-		requestsIn:             make(chan []*common.ClientBatch),
-		cancel:                 make(chan bool, 7),
+		outgoingMessageChan: make(chan *common.OutgoingRPC, outgoingBufferSize),
+		debugOn:             debugOn,
+		debugLevel:          debugLevel,
+		serverStarted:       false,
+
+		consensusStarted: false,
+		logPrinted:       false,
+		benchmarkMode:    benchmarkMode,
+		state:            Init(benchmarkMode, name, keyLen, valLen),
+		incomingRequests: make([]*common.ClientBatch, 0),
+		lastProposedTime: time.Now(),
+
 		isAsynchronous:         isAsync,
 		asyncSimulationTimeout: asyncTimeout,
 		asynchronousReplicas:   make(map[int][]int),
@@ -144,11 +138,13 @@ func New(name int32, cfg *common.InstanceConfig, logFilePath string, replicaBatc
 	*/
 	rp.RegisterRPC(new(common.ClientBatch), rp.messageCodes.ClientBatchRpc)
 	rp.RegisterRPC(new(common.Status), rp.messageCodes.StatusRPC)
-	rp.RegisterRPC(new(PaxosConsensus), rp.messageCodes.PaxosConsensus)
 
-	rand.Seed(time.Now().UnixNano() + int64(rp.name))
+	rp.RegisterRPC(new(common.PrepareRequest), rp.messageCodes.PrepareRequest)
+	rp.RegisterRPC(new(common.PromiseReply), rp.messageCodes.PromiseReply)
+	rp.RegisterRPC(new(common.ProposeRequest), rp.messageCodes.ProposeRequest)
+	rp.RegisterRPC(new(common.AcceptReply), rp.messageCodes.AcceptReply)
 
-	//rp.debug("Registered RPCs in the table", 0)
+	rp.debug("Registered RPCs in the table", 0)
 
 	if rp.isAsynchronous {
 		// initialize the attack replicas for each time epoch, we assume a total number of time of the run to be 10 minutes just for convenience, but this does not affect the correctness
@@ -168,11 +164,11 @@ func New(name int32, cfg *common.InstanceConfig, logFilePath string, replicaBatc
 		}
 
 		if rp.debugOn {
-			//rp.debug(fmt.Sprintf("set of attacked nodes %v ", rp.asynchronousReplicas), 0)
+			rp.debug(fmt.Sprintf("set of attacked nodes %v ", rp.asynchronousReplicas), 0)
 		}
 	}
 
-	rp.paxosConsensus = InitPaxosConsensus(name, &rp, pipelineLength, isAsync, asyncTimeout)
+	rp.baxosConsensus = InitBaxosConsensus(name, &rp, isAsync, asyncTimeout) // reassign parameters later
 
 	pid := os.Getpid()
 	fmt.Printf("--Initialized replica %v with process id: %v \n", name, pid)
@@ -229,10 +225,10 @@ func (rp *Replica) getNodeType(id int32) string {
 	panic("should not happen")
 }
 
-// debug printing
+//debug printing
 
-//func (rp *Replica) debug(s string, i int) {
-//	if rp.debugOn && i >= rp.debugLevel {
-//		fmt.Print(s + "\n")
-//	}
-//}
+func (rp *Replica) debug(s string, i int) {
+	if rp.debugOn && i >= rp.debugLevel {
+		fmt.Print(s + "\n")
+	}
+}
