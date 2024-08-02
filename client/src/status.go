@@ -3,6 +3,7 @@ package src
 import (
 	"baxos/replica/src"
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -19,7 +20,7 @@ func (cl *Client) handleClientStatusResponse(response *src.Status) {
 */
 
 func (cl *Client) SendStatus(operationType int) {
-	//cl.debug("Sending status request to all replicas", 0)
+	cl.debug("Sending status request to all replicas", 0)
 
 	for name, _ := range cl.replicaAddrList {
 
@@ -35,7 +36,7 @@ func (cl *Client) SendStatus(operationType int) {
 		}
 
 		cl.sendMessage(name, rpcPair)
-		//cl.debug("Sent status to "+strconv.Itoa(int(name)), 0)
+		cl.debug("Sent status to "+strconv.Itoa(int(name)), 0)
 	}
 	time.Sleep(time.Duration(statusTimeout) * time.Second)
 }
