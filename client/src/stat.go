@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-const CLIENT_TIMEOUT = 2000000
+const CLIENT_TIMEOUT = 5000000
 
 /*
 calculate the number of elements in the 2d array
