@@ -8,7 +8,6 @@ import (
 	"os"
 	"strconv"
 	"sync"
-	"time"
 )
 
 /*
@@ -58,8 +57,6 @@ type Replica struct {
 	state         *Benchmark // k/v store
 
 	incomingRequests []*common.ClientBatch
-
-	lastProposedTime time.Time
 
 	isAsynchronous         bool
 	asyncSimulationTimeout int
@@ -111,7 +108,6 @@ func New(name int32, cfg *common.InstanceConfig, logFilePath string, replicaBatc
 		benchmarkMode:    benchmarkMode,
 		state:            Init(benchmarkMode, name, keyLen, valLen),
 		incomingRequests: make([]*common.ClientBatch, 0),
-		lastProposedTime: time.Now(),
 
 		isAsynchronous:         isAsync,
 		asyncSimulationTimeout: asyncTimeout,

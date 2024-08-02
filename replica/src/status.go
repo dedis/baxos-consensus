@@ -28,7 +28,6 @@ func (rp *Replica) handleStatus(message *common.Status) {
 	} else if message.Type == 3 {
 		if rp.consensusStarted == false {
 			rp.consensusStarted = true
-			rp.lastProposedTime = time.Now()
 			if rp.debugOn {
 				rp.debug("started baxos consensus", 0)
 			}
