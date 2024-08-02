@@ -1,6 +1,7 @@
 package src
 
 import (
+	"baxos/common"
 	"bufio"
 	"encoding/binary"
 	"fmt"
@@ -81,7 +82,7 @@ func (rp *Replica) connectionListener(reader *bufio.Reader, id int32) {
 				//rp.debug("Error while unmarshalling from "+strconv.Itoa(int(id))+fmt.Sprintf(" %v", err), 0)
 				return
 			}
-			rp.incomingChan <- &RPCPair{
+			rp.incomingChan <- &common.RPCPair{
 				Code: msgType,
 				Obj:  obj,
 			}
@@ -149,13 +150,13 @@ func (rp *Replica) Run() {
 			switch replicaMessage.Code {
 
 			case rp.messageCodes.StatusRPC:
-				statusMessage := replicaMessage.Obj.(*Status)
+				statusMessage := replicaMessage.Obj.(*common.Status)
 				//rp.debug("Status message from "+fmt.Sprintf("%#v", statusMessage.Sender), 0)
 				rp.handleStatus(statusMessage)
 				break
 
 			case rp.messageCodes.ClientBatchRpc:
-				clientBatch := replicaMessage.Obj.(*ClientBatch)
+				clientBatch := replicaMessage.Obj.(*common.ClientBatch)
 				//rp.debug("Client batch message from "+fmt.Sprintf("%#v", clientBatch.Sender), 0)
 				rp.handleClientBatch(clientBatch)
 				break
@@ -177,7 +178,7 @@ func (rp *Replica) Run() {
 	Write a message to the wire, first the message type is written and then the actual message
 */
 
-func (rp *Replica) internalSendMessage(peer int32, rpcPair *RPCPair) {
+func (rp *Replica) internalSendMessage(peer int32, rpcPair *common.RPCPair) {
 	peerType := rp.getNodeType(peer)
 	if peerType == "replica" {
 		w := rp.outgoingReplicaWriters[peer]
@@ -256,8 +257,8 @@ func (rp *Replica) StartOutgoingLinks() {
 	Add a new out-going message to the outgoing channel
 */
 
-func (rp *Replica) sendMessage(peer int32, rpcPair RPCPair) {
-	rp.outgoingMessageChan <- &OutgoingRPC{
+func (rp *Replica) sendMessage(peer int32, rpcPair common.RPCPair) {
+	rp.outgoingMessageChan <- &common.OutgoingRPC{
 		RpcPair: &rpcPair,
 		Peer:    peer,
 	}

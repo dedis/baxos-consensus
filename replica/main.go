@@ -1,6 +1,7 @@
 package main
 
 import (
+	"baxos/common"
 	"baxos/replica/src"
 	"flag"
 	"fmt"
@@ -26,7 +27,7 @@ func main() {
 
 	flag.Parse()
 
-	cfg, err := src.NewInstanceConfig(*configFile, *name)
+	cfg, err := common.NewInstanceConfig(*configFile, *name)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "load config: %v\n", err)
 		panic(err)

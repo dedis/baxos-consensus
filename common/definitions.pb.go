@@ -4,7 +4,7 @@
 // 	protoc        v3.12.4
 // source: replica/src/definitions.proto
 
-package src
+package common
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

@@ -1,7 +1,7 @@
 package src
 
 import (
-	"baxos/replica/src"
+	"baxos/common"
 	"bufio"
 	"encoding/binary"
 	"fmt"
@@ -95,7 +95,7 @@ func (cl *Client) connectionListener(reader *bufio.Reader, id int32) {
 				//cl.debug("error while unmarshalling from "+strconv.Itoa(int(id)), 0)
 				return
 			}
-			cl.incomingChan <- &src.RPCPair{
+			cl.incomingChan <- &common.RPCPair{
 				Code: msgType,
 				Obj:  obj,
 			}
@@ -123,13 +123,13 @@ func (cl *Client) Run() {
 
 			switch replicaMessage.Code {
 			case cl.messageCodes.ClientBatchRpc:
-				clientResponseBatch := replicaMessage.Obj.(*src.ClientBatch)
+				clientResponseBatch := replicaMessage.Obj.(*common.ClientBatch)
 				cl.debug("Client response batch from "+strconv.Itoa(int(clientResponseBatch.Sender)), 0)
 				cl.handleClientResponseBatch(clientResponseBatch)
 				break
 
 			case cl.messageCodes.StatusRPC:
-				clientStatusResponse := replicaMessage.Obj.(*src.Status)
+				clientStatusResponse := replicaMessage.Obj.(*common.Status)
 				cl.debug("Client status "+fmt.Sprintf("%#v", clientStatusResponse), 0)
 				cl.handleClientStatusResponse(clientStatusResponse)
 				break
@@ -142,7 +142,7 @@ func (cl *Client) Run() {
 	write a message to the wire, first the message type is written and then the actual message
 */
 
-func (cl *Client) internalSendMessage(peer int32, rpcPair *src.RPCPair) {
+func (cl *Client) internalSendMessage(peer int32, rpcPair *common.RPCPair) {
 	w := cl.outgoingReplicaWriters[peer]
 	cl.outgoingReplicaWriterMutexs[peer].Lock()
 	err := w.WriteByte(rpcPair.Code)
@@ -187,8 +187,8 @@ func (cl *Client) StartOutgoingLinks() {
 	Add a new out-going message to the outgoing channel
 */
 
-func (cl *Client) sendMessage(peer int32, rpcPair src.RPCPair) {
-	cl.outgoingMessageChan <- &src.OutgoingRPC{
+func (cl *Client) sendMessage(peer int32, rpcPair common.RPCPair) {
+	cl.outgoingMessageChan <- &common.OutgoingRPC{
 		RpcPair: &rpcPair,
 		Peer:    peer,
 	}

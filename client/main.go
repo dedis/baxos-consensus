@@ -2,7 +2,7 @@ package main
 
 import (
 	"baxos/client/src"
-	src2 "baxos/replica/src"
+	src2 "baxos/common"
 	"flag"
 	"time"
 )

@@ -1,7 +1,7 @@
 package src
 
 import (
-	"baxos/replica/src"
+	"baxos/common"
 	"fmt"
 	"strconv"
 	"time"
@@ -11,7 +11,7 @@ import (
 	when a status response is received, print it to console
 */
 
-func (cl *Client) handleClientStatusResponse(response *src.Status) {
+func (cl *Client) handleClientStatusResponse(response *common.Status) {
 	fmt.Printf("status response %v\n", response)
 }
 
@@ -24,13 +24,13 @@ func (cl *Client) SendStatus(operationType int) {
 
 	for name, _ := range cl.replicaAddrList {
 
-		statusRequest := src.Status{
+		statusRequest := common.Status{
 			Type:   int32(operationType),
 			Note:   "",
 			Sender: int64(cl.clientName),
 		}
 
-		rpcPair := src.RPCPair{
+		rpcPair := common.RPCPair{
 			Code: cl.messageCodes.StatusRPC,
 			Obj:  &statusRequest,
 		}

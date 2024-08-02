@@ -1,6 +1,7 @@
 package src
 
 import (
+	"baxos/common"
 	"context"
 	"github.com/go-redis/redis/v8"
 )
@@ -68,8 +69,8 @@ func Init(mode int, name int32, keyLen int, valueLen int) *Benchmark {
 	external API to call
 */
 
-func (b *Benchmark) Execute(requests []*ClientBatch) []*ClientBatch {
-	var commands []*ClientBatch
+func (b *Benchmark) Execute(requests []*common.ClientBatch) []*common.ClientBatch {
+	var commands []*common.ClientBatch
 	if b.mode == 0 {
 		commands = b.residentExecute(requests)
 	} else {
@@ -82,19 +83,19 @@ func (b *Benchmark) Execute(requests []*ClientBatch) []*ClientBatch {
 	resident key value store operation: for each client request invoke the resident k/v store
 */
 
-func (b *Benchmark) residentExecute(commands []*ClientBatch) []*ClientBatch {
-	returnCommands := make([]*ClientBatch, len(commands))
+func (b *Benchmark) residentExecute(commands []*common.ClientBatch) []*common.ClientBatch {
+	returnCommands := make([]*common.ClientBatch, len(commands))
 
 	for clientBatchIndex := 0; clientBatchIndex < len(commands); clientBatchIndex++ {
 
-		returnCommands[clientBatchIndex] = &ClientBatch{
+		returnCommands[clientBatchIndex] = &common.ClientBatch{
 			UniqueId: commands[clientBatchIndex].UniqueId,
-			Requests: make([]*SingleOperation, len(commands[clientBatchIndex].Requests)),
+			Requests: make([]*common.SingleOperation, len(commands[clientBatchIndex].Requests)),
 			Sender:   commands[clientBatchIndex].Sender,
 		}
 
 		for clientRequestIndex := 0; clientRequestIndex < len(commands[clientBatchIndex].Requests); clientRequestIndex++ {
-			returnCommands[clientBatchIndex].Requests[clientRequestIndex] = &SingleOperation{
+			returnCommands[clientBatchIndex].Requests[clientRequestIndex] = &common.SingleOperation{
 				Command: "",
 			}
 
@@ -122,22 +123,22 @@ func (b *Benchmark) residentExecute(commands []*ClientBatch) []*ClientBatch {
 	redis commands execution: batch the requests and execute
 */
 
-func (b *Benchmark) redisExecute(commands []*ClientBatch) []*ClientBatch {
-	returnCommands := make([]*ClientBatch, len(commands))
+func (b *Benchmark) redisExecute(commands []*common.ClientBatch) []*common.ClientBatch {
+	returnCommands := make([]*common.ClientBatch, len(commands))
 
 	mset := make([]string, 0) // pending MSET requests
 	mget := make([]string, 0) // pending MGET requests
 
 	for clientBatchIndex := 0; clientBatchIndex < len(commands); clientBatchIndex++ {
 
-		returnCommands[clientBatchIndex] = &ClientBatch{
+		returnCommands[clientBatchIndex] = &common.ClientBatch{
 			UniqueId: commands[clientBatchIndex].UniqueId,
-			Requests: make([]*SingleOperation, len(commands[clientBatchIndex].Requests)),
+			Requests: make([]*common.SingleOperation, len(commands[clientBatchIndex].Requests)),
 			Sender:   commands[clientBatchIndex].Sender,
 		}
 
 		for clientRequestIndex := 0; clientRequestIndex < len(commands[clientBatchIndex].Requests); clientRequestIndex++ {
-			returnCommands[clientBatchIndex].Requests[clientRequestIndex] = &SingleOperation{
+			returnCommands[clientBatchIndex].Requests[clientRequestIndex] = &common.SingleOperation{
 				Command: "",
 			}
 

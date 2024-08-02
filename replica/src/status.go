@@ -1,6 +1,7 @@
 package src
 
 import (
+	"baxos/common"
 	"fmt"
 	"time"
 )
@@ -11,7 +12,7 @@ import (
 		2. Send a response back to the sender
 */
 
-func (rp *Replica) handleStatus(message *Status) {
+func (rp *Replica) handleStatus(message *common.Status) {
 	fmt.Print("Status  " + fmt.Sprintf("%v", message) + " \n")
 	if message.Type == 1 {
 		if rp.serverStarted == false {
@@ -48,12 +49,12 @@ func (rp *Replica) handleStatus(message *Status) {
 
 	//rp.debug("Sending status reply ", 0)
 
-	statusMessage := Status{
+	statusMessage := common.Status{
 		Type: message.Type,
 		Note: message.Note,
 	}
 
-	rpcPair := RPCPair{
+	rpcPair := common.RPCPair{
 		Code: rp.messageCodes.StatusRPC,
 		Obj:  &statusMessage,
 	}

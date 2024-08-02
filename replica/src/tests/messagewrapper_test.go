@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"baxos/replica/src"
+	"baxos/common"
 	"bytes"
 	"testing"
 )
@@ -9,8 +9,8 @@ import (
 func TestClientBatchMarshalUnmarshal(t *testing.T) {
 	// Step 1: Generate a ClientBatch
 
-	requests := []*src.SingleOperation{{Command: "a"}, {Command: "b"}}
-	originalClientBatch := &src.ClientBatch{
+	requests := []*common.SingleOperation{{Command: "a"}, {Command: "b"}}
+	originalClientBatch := &common.ClientBatch{
 		UniqueId: "a",
 		Requests: requests,
 		Sender:   1,
@@ -24,7 +24,7 @@ func TestClientBatchMarshalUnmarshal(t *testing.T) {
 	}
 
 	// Step 3: Unmarshal into a new ClientBatch
-	newClientBatch := &src.ClientBatch{}
+	newClientBatch := &common.ClientBatch{}
 	err = newClientBatch.Unmarshal(&buf)
 	if err != nil {
 		t.Fatalf("Failed to unmarshal ClientBatch: %v", err)
@@ -37,7 +37,7 @@ func TestClientBatchMarshalUnmarshal(t *testing.T) {
 }
 
 // isEqual compares two ClientBatch objects for equality.
-func isEqual(a, b *src.ClientBatch) bool {
+func isEqual(a, b *common.ClientBatch) bool {
 	if a.Sender != b.Sender {
 		return false
 	}

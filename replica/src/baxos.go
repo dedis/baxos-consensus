@@ -1,6 +1,7 @@
 package src
 
 import (
+	"baxos/common"
 	"math/rand"
 	"os"
 	"strconv"
@@ -13,17 +14,17 @@ type BaxosProposerInstance struct {
 
 	highestCompetingBallot int32 // the highest ballot number for which a promise message was received
 
-	highestSeenAcceptedBallot int32        // the highest accepted ballot number among them set of Promise messages
-	highestSeenAcceptedValue  ReplicaBatch // the highest accepted value among the set of Promise messages
+	highestSeenAcceptedBallot int32               // the highest accepted ballot number among them set of Promise messages
+	highestSeenAcceptedValue  common.ReplicaBatch // the highest accepted value among the set of Promise messages
 
-	proposedValue        ReplicaBatch // the value that is proposed
-	numSuccessfulAccepts int32        // the number of successful accept messages received
+	proposedValue        common.ReplicaBatch // the value that is proposed
+	numSuccessfulAccepts int32               // the number of successful accept messages received
 }
 
 type BaxosAcceptorInstance struct {
 	promisedBallot int32
 	acceptedBallot int32
-	acceptedValue  ReplicaBatch
+	acceptedValue  common.ReplicaBatch
 }
 
 /*
@@ -33,7 +34,7 @@ type BaxosAcceptorInstance struct {
 type BaxosInstance struct {
 	proposer_bookkeeping BaxosProposerInstance
 	acceptor_bookkeeping BaxosAcceptorInstance
-	decidedValue         ReplicaBatch
+	decidedValue         common.ReplicaBatch
 	decided              bool
 }
 
@@ -49,7 +50,7 @@ type Baxos struct {
 	replicatedLog []BaxosInstance // the replicated log of commands
 
 	isBackingOff bool // if the replica is backing off
-	wakeupTimer  *TimerWithCancel
+	wakeupTimer  *common.TimerWithCancel
 
 	startTime time.Time // time when the consensus was started
 
@@ -71,12 +72,12 @@ func InitPaxosConsensus(name int32, replica *Replica, isAsync bool, asyncTimeout
 		proposedBallot:            -1,
 		promisedBallot:            -1,
 		acceptedBallot:            -1,
-		acceptedValue:             ReplicaBatch{},
-		decidedValue:              ReplicaBatch{},
+		acceptedValue:             common.ReplicaBatch{},
+		decidedValue:              common.ReplicaBatch{},
 		decided:                   true,
 		proposeResponses:          0,
 		highestSeenAcceptedBallot: -1,
-		highestSeenAcceptedValue:  ReplicaBatch{},
+		highestSeenAcceptedValue:  common.ReplicaBatch{},
 	})
 
 	// create initial slots
@@ -85,12 +86,12 @@ func InitPaxosConsensus(name int32, replica *Replica, isAsync bool, asyncTimeout
 			proposedBallot:            -1,
 			promisedBallot:            -1,
 			acceptedBallot:            -1,
-			acceptedValue:             ReplicaBatch{},
-			decidedValue:              ReplicaBatch{},
+			acceptedValue:             common.ReplicaBatch{},
+			decidedValue:              common.ReplicaBatch{},
 			decided:                   false,
 			proposeResponses:          0,
 			highestSeenAcceptedBallot: -1,
-			highestSeenAcceptedValue:  ReplicaBatch{},
+			highestSeenAcceptedValue:  common.ReplicaBatch{},
 		})
 	}
 
@@ -140,12 +141,12 @@ func (rp *Replica) createNPaxosInstances(number int) {
 			proposedBallot:            -1,
 			promisedBallot:            rp.paxosConsensus.lastPromisedBallot,
 			acceptedBallot:            -1,
-			acceptedValue:             ReplicaBatch{},
-			decidedValue:              ReplicaBatch{},
+			acceptedValue:             common.ReplicaBatch{},
+			decidedValue:              common.ReplicaBatch{},
 			decided:                   false,
 			proposeResponses:          0,
 			highestSeenAcceptedBallot: -1,
-			highestSeenAcceptedValue:  ReplicaBatch{},
+			highestSeenAcceptedValue:  common.ReplicaBatch{},
 		})
 
 		rp.paxosConsensus.nextFreeInstance++
@@ -208,7 +209,7 @@ func (rp *Replica) handlePaxosConsensus(message *PaxosConsensus) {
 
 func (rp *Replica) setPaxosViewTimer(view int32) {
 
-	rp.paxosConsensus.viewTimer = NewTimerWithCancel(time.Duration(rp.viewTimeout+rand.Intn(rp.viewTimeout+int(rp.name))) * time.Microsecond)
+	rp.paxosConsensus.viewTimer = common.NewTimerWithCancel(time.Duration(rp.viewTimeout+rand.Intn(rp.viewTimeout+int(rp.name))) * time.Microsecond)
 
 	rp.paxosConsensus.viewTimer.SetTimeoutFuntion(func() {
 
@@ -220,7 +221,7 @@ func (rp *Replica) setPaxosViewTimer(view int32) {
 			View:     view,
 		}
 
-		rpcPair := RPCPair{
+		rpcPair := common.RPCPair{
 			Code: rp.messageCodes.PaxosConsensus,
 			Obj:  &internalTimeoutNotification,
 		}
@@ -287,7 +288,7 @@ func (rp *Replica) sendPrepare() {
 			View:           rp.paxosConsensus.view,
 		}
 
-		rpcPair := RPCPair{
+		rpcPair := common.RPCPair{
 			Code: rp.messageCodes.PaxosConsensus,
 			Obj:  &prepareMsg,
 		}
@@ -359,16 +360,16 @@ func (rp *Replica) handlePrepare(message *PaxosConsensus) {
 
 			// send a promise message to the sender
 			promiseMsg := PaxosConsensus{
-				Sender:         rp.name,
-				Receiver:       message.Sender,
-				Type:           2,
-				InstanceNumber: message.InstanceNumber,
-				Ballot:         message.Ballot,
-				View:           message.View,
-				PromiseReply:   prepareResponses,
+				Sender:              rp.name,
+				Receiver:            message.Sender,
+				Type:                2,
+				InstanceNumber:      message.InstanceNumber,
+				Ballot:              message.Ballot,
+				View:                message.View,
+				common.PromiseReply: prepareResponses,
 			}
 
-			rpcPair := RPCPair{
+			rpcPair := common.RPCPair{
 				Code: rp.messageCodes.PaxosConsensus,
 				Obj:  &promiseMsg,
 			}
@@ -429,7 +430,7 @@ func (rp *Replica) handlePromise(message *PaxosConsensus) {
 	leader invokes this function to replicate a new instance for lastProposedLogIndex +1
 */
 
-func (rp *Replica) sendPropose(requests []*ClientBatch) { // requests can be empty
+func (rp *Replica) sendPropose(requests []*common.ClientBatch) { // requests can be empty
 	if rp.paxosConsensus.isBackingOff {
 		return
 	}
@@ -448,7 +449,7 @@ func (rp *Replica) sendPropose(requests []*ClientBatch) { // requests can be emp
 			rp.createPaxosInstanceIfMissing(int(rp.paxosConsensus.lastProposedLogIndex))
 		}
 
-		proposeValue := &ReplicaBatch{
+		proposeValue := &common.ReplicaBatch{
 			UniqueId: "",
 			Requests: requests,
 			Sender:   int64(rp.name),
@@ -496,7 +497,7 @@ func (rp *Replica) sendPropose(requests []*ClientBatch) { // requests can be emp
 				DecidedValues:  decided_values,
 			}
 
-			rpcPair := RPCPair{
+			rpcPair := common.RPCPair{
 				Code: rp.messageCodes.PaxosConsensus,
 				Obj:  &proposeMsg,
 			}
@@ -566,7 +567,7 @@ func (rp *Replica) handlePropose(message *PaxosConsensus) {
 			View:           message.View,
 		}
 
-		rpcPair := RPCPair{
+		rpcPair := common.RPCPair{
 			Code: rp.messageCodes.PaxosConsensus,
 			Obj:  &acceptMsg,
 		}
@@ -605,7 +606,7 @@ func (rp *Replica) handleAccept(message *PaxosConsensus) {
 
 			rp.paxosConsensus.replicatedLog[message.InstanceNumber].decided = true
 			rp.paxosConsensus.replicatedLog[message.InstanceNumber].decidedValue = rp.paxosConsensus.replicatedLog[message.InstanceNumber].proposedValue
-			rp.paxosConsensus.replicatedLog[message.InstanceNumber].proposedValue = ReplicaBatch{}
+			rp.paxosConsensus.replicatedLog[message.InstanceNumber].proposedValue = common.ReplicaBatch{}
 			//rp.debug("Decided upon receiving n-f accept message for instance "+strconv.Itoa(int(message.InstanceNumber)), 7)
 			rp.paxosConsensus.decidedIndexes = append(rp.paxosConsensus.decidedIndexes, int(message.InstanceNumber))
 			rp.updatePaxosSMR()
@@ -632,7 +633,7 @@ func (rp *Replica) updatePaxosSMR() {
 	for i := rp.paxosConsensus.lastCommittedLogIndex + 1; i < int32(len(rp.paxosConsensus.replicatedLog)); i++ {
 
 		if rp.paxosConsensus.replicatedLog[i].decided == true {
-			var cllientResponses []*ClientBatch
+			var cllientResponses []*common.ClientBatch
 			cllientResponses = rp.updateApplicationLogic(rp.paxosConsensus.replicatedLog[i].decidedValue.Requests)
 			if rp.paxosConsensus.replicatedLog[i].decidedValue.Sender == int64(rp.name) {
 				rp.sendClientResponses(cllientResponses)

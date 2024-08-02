@@ -1,7 +1,7 @@
 package src
 
 import (
-	"baxos/replica/src"
+	"baxos/common"
 	"fmt"
 	"github.com/montanaflynn/stats"
 	"os"
@@ -125,7 +125,7 @@ func (cl *Client) getFloat64List(list []int64) []float64 {
 	print a client request batch with arrival time and end time w.r.t test start time
 */
 
-func (cl *Client) printRequests(messages src.ClientBatch, startTime int64, endTime int64, f *os.File) {
+func (cl *Client) printRequests(messages common.ClientBatch, startTime int64, endTime int64, f *os.File) {
 	for i := 0; i < len(messages.Requests); i++ {
 		_, _ = f.WriteString(messages.Requests[i].Command + "," + strconv.Itoa(int(startTime)) + "," + strconv.Itoa(int(endTime)) + "\n")
 	}
