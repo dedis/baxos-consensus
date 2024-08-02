@@ -143,9 +143,9 @@ func New(name int32, cfg *common.InstanceConfig, logFilePath string, replicaBatc
 	rp.RegisterRPC(new(common.PromiseReply), rp.messageCodes.PromiseReply)
 	rp.RegisterRPC(new(common.ProposeRequest), rp.messageCodes.ProposeRequest)
 	rp.RegisterRPC(new(common.AcceptReply), rp.messageCodes.AcceptReply)
-
-	rp.debug("Registered RPCs in the table", 0)
-
+	if rp.debugOn {
+		rp.debug("Registered RPCs in the table", 0)
+	}
 	if rp.isAsynchronous {
 		// initialize the attack replicas for each time epoch, we assume a total number of time of the run to be 10 minutes just for convenience, but this does not affect the correctness
 		numEpochs := 10 * 60 * 1000 / rp.timeEpochSize

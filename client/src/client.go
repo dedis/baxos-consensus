@@ -117,8 +117,9 @@ func New(name int32, cfg *common.InstanceConfig, logFilePath string, clientBatch
 		receivedNumMutex:    &sync.Mutex{},
 	}
 
-	cl.debug("Created a new client instance", 0)
-
+	if cl.debugOn {
+		cl.debug("Created a new client instance", 0)
+	}
 	// initialize replicaAddrList
 	for i := 0; i < len(cfg.Peers); i++ {
 		int32Name, _ := strconv.ParseInt(cfg.Peers[i].Name, 10, 32)
@@ -132,8 +133,9 @@ func New(name int32, cfg *common.InstanceConfig, logFilePath string, clientBatch
 	cl.RegisterRPC(new(common.ClientBatch), cl.messageCodes.ClientBatchRpc)
 	cl.RegisterRPC(new(common.Status), cl.messageCodes.StatusRPC)
 
-	cl.debug("Registered RPCs in the table", 0)
-
+	if cl.debugOn {
+		cl.debug("Registered RPCs in the table", 0)
+	}
 	// Set random seed
 	rand.Seed(time.Now().UTC().UnixNano())
 

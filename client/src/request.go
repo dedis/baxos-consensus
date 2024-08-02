@@ -31,7 +31,9 @@ func (cl *Client) handleClientResponseBatch(batch *common.ClientBatch) {
 	cl.receivedNumMutex.Lock()
 	cl.numReceivedBatches++
 	cl.receivedNumMutex.Unlock()
-	cl.debug("Added response Batch with id "+batch.UniqueId, 0)
+	if cl.debugOn {
+		cl.debug("Added response Batch with id "+batch.UniqueId, 0)
+	}
 }
 
 /*
@@ -103,8 +105,9 @@ func (cl *Client) startRequestGenerators() {
 						Requests: requests_i,
 						Sender:   int64(cl.clientName),
 					}
-					cl.debug("Sending "+strconv.Itoa(int(cl.clientName))+"."+strconv.Itoa(threadNumber)+"."+strconv.Itoa(localCounter)+" batch size "+strconv.Itoa(len(requests)), 0)
-
+					if cl.debugOn {
+						cl.debug("Sending "+strconv.Itoa(int(cl.clientName))+"."+strconv.Itoa(threadNumber)+"."+strconv.Itoa(localCounter)+" batch size "+strconv.Itoa(len(requests)), 0)
+					}
 					rpcPair := common.RPCPair{
 						Code: cl.messageCodes.ClientBatchRpc,
 						Obj:  &batch,
