@@ -2,6 +2,7 @@ package src
 
 import (
 	"baxos/common"
+	"fmt"
 	"math/rand"
 	"os"
 	"strconv"
@@ -11,8 +12,6 @@ import (
 type BaxosProposerInstance struct {
 	preparedBallot        int32 // the ballot number for which the prepare message was sent
 	numSuccessfulPrepares int32 // the number of successful prepare messages received
-
-	highestCompetingBallot int32 // the highest ballot number for which a promise message was received
 
 	highestSeenAcceptedBallot int32               // the highest accepted ballot number among them set of Promise messages
 	highestSeenAcceptedValue  common.ReplicaBatch // the highest accepted value among the set of Promise messages
@@ -45,12 +44,14 @@ type BaxosInstance struct {
 type Baxos struct {
 	name int32
 
-	lastCommittedLogIndex int32 // the last log position that is committed
+	lastCommittedLogIndex int32                   // the last log position that is committed
+	replicatedLog         []BaxosInstance         // the replicated log of commands
+	timer                 *common.TimerWithCancel // the timer for collecting promise / accept responses
+	roundTripTime         int64                   // network round trip time in microseconds
 
-	replicatedLog []BaxosInstance // the replicated log of commands
-
-	isBackingOff bool // if the replica is backing off
-	wakeupTimer  *common.TimerWithCancel
+	isBackingOff bool                    // if the replica is backing off
+	wakeupTimer  *common.TimerWithCancel // to wake up after backing off
+	retries      int
 
 	startTime time.Time // time when the consensus was started
 
@@ -60,8 +61,36 @@ type Baxos struct {
 	asyncTimeout int
 }
 
-func (rp *Replica) handleBaxosConsensus(message *common.RPCPair) {
+func (rp *Replica) handleBaxosConsensus(message common.Serializable, code uint8) {
 
+	if code == rp.messageCodes.PrepareRequest {
+		prepareRequest := message.(*common.PrepareRequest)
+		if rp.debugOn {
+			rp.debug("Received a prepare message from "+strconv.Itoa(int(prepareRequest.Sender))+" for view "+strconv.Itoa(int(message.View))+" for prepare ballot "+strconv.Itoa(int(message.Ballot))+" for initial instance "+strconv.Itoa(int(message.InstanceNumber))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
+		}
+		rp.handlePrepare(prepareRequest)
+	}
+
+	if code == rp.messageCodes.PromiseReply {
+		if rp.debugOn {
+			rp.debug("Received a promise message from "+strconv.Itoa(int(message.Sender))+" for view "+strconv.Itoa(int(message.View))+" for instance "+strconv.Itoa(int(message.InstanceNumber))+" for promise ballot "+strconv.Itoa(int(message.Ballot))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
+		}
+		rp.handlePromise(message.(*common.PromiseReply))
+	}
+
+	if code == rp.messageCodes.ProposeRequest {
+		if rp.debugOn {
+			rp.debug("Received a propose message from "+strconv.Itoa(int(message.Sender))+" for view "+strconv.Itoa(int(message.View))+" for instance "+strconv.Itoa(int(message.InstanceNumber))+" for propose ballot "+strconv.Itoa(int(message.Ballot))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
+		}
+		rp.handlePropose(message.(*common.ProposeRequest))
+	}
+
+	if code == rp.messageCodes.AcceptReply {
+		if rp.debugOn {
+			rp.debug("Received a accept message from "+strconv.Itoa(int(message.Sender))+" for view "+strconv.Itoa(int(message.View))+" for instance "+strconv.Itoa(int(message.InstanceNumber))+" for accept ballot "+strconv.Itoa(int(message.Ballot))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
+		}
+		rp.handleAccept(message.(*common.AcceptReply))
+	}
 }
 
 /*
@@ -161,39 +190,6 @@ func (rp *Replica) createPaxosInstanceIfMissing(instanceNum int) {
 /*
 	handler for generic Paxos messages
 */
-
-func (rp *Replica) handlePaxosConsensus(message *PaxosConsensus) {
-
-	if message.Type == 1 {
-		//rp.debug("Received a prepare message from "+strconv.Itoa(int(message.Sender))+
-		//	" for view "+strconv.Itoa(int(message.View))+" for prepare ballot "+strconv.Itoa(int(message.Ballot))+" for initial instance "+strconv.Itoa(int(message.InstanceNumber))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
-		rp.handlePrepare(message)
-	}
-
-	if message.Type == 2 {
-		//rp.debug("Received a promise message from "+strconv.Itoa(int(message.Sender))+
-		//	" for view "+strconv.Itoa(int(message.View))+" for instance "+strconv.Itoa(int(message.InstanceNumber))+" for promise ballot "+strconv.Itoa(int(message.Ballot))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
-		rp.handlePromise(message)
-	}
-
-	if message.Type == 3 {
-		//rp.debug("Received a propose message from "+strconv.Itoa(int(message.Sender))+
-		//	" for view "+strconv.Itoa(int(message.View))+" for instance "+strconv.Itoa(int(message.InstanceNumber))+" for propose ballot "+strconv.Itoa(int(message.Ballot))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
-		rp.handlePropose(message)
-	}
-
-	if message.Type == 4 {
-		//rp.debug("Received a accept message from "+strconv.Itoa(int(message.Sender))+
-		//" for view "+strconv.Itoa(int(message.View))+" for instance "+strconv.Itoa(int(message.InstanceNumber))+" for accept ballot "+strconv.Itoa(int(message.Ballot))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
-		rp.handleAccept(message)
-	}
-
-	if message.Type == 5 {
-		//rp.debug("Received an internal timeout message from "+strconv.Itoa(int(message.Sender))+
-		//	" for view "+strconv.Itoa(int(message.View))+" for instance "+strconv.Itoa(int(message.InstanceNumber))+" at time "+fmt.Sprintf("%v", time.Now().Sub(rp.paxosConsensus.startTime).Milliseconds()), 0)
-		rp.handlePaxosInternalTimeout(message)
-	}
-}
 
 /*
 	Sets a timer, which once timeout will send an internal notification for a prepare message after another random wait to break the ties

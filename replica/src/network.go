@@ -183,7 +183,7 @@ func (rp *Replica) Run() {
 				if rp.debugOn {
 					rp.debug("Baxos consensus message ", 0)
 				}
-				rp.handleBaxosConsensus(replicaMessage)
+				rp.handleBaxosConsensus(replicaMessage.Obj, replicaMessage.Code)
 				break
 
 			}

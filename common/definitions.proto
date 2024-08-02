@@ -1,5 +1,5 @@
 syntax = "proto3";
-option go_package = "replica/src/";
+option go_package = "common/";
 
 /*
   Client batch refers to a client request batch, or a client response batch
@@ -42,6 +42,7 @@ message Status {
 message PrepareRequest {
   int32 instance_number = 1;
   int32 prepare_ballot = 2;
+  int64 sender = 3;
 }
 
 message PromiseReply {
@@ -54,6 +55,7 @@ message PromiseReply {
 
   bool decided = 6; // if the current instance is already decided
   ReplicaBatch decided_value = 7;
+  int64 sender = 8;
 }
 
 message ProposeRequest {
@@ -62,6 +64,7 @@ message ProposeRequest {
   ReplicaBatch propose_value = 3;
 
   PrepareRequest prepare_request_for_future_index = 4;
+  int64 sender = 5;
 }
 
 message AcceptReply {
@@ -73,4 +76,5 @@ message AcceptReply {
   ReplicaBatch decided_value = 5;
 
   PromiseReply promise_reply_for_future_index = 6;
+  int64 sender = 7;
 }
