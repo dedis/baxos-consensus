@@ -1,11 +1,11 @@
 package src
 
 import (
+	"baxos/replica/src"
 	"bufio"
 	"fmt"
 	"math/rand"
 	"os"
-	"paxos_raft/replica/src"
 	"strconv"
 	"sync"
 	"time"

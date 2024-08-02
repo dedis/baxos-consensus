@@ -1,10 +1,10 @@
 package main
 
 import (
+	"baxos/replica/src"
 	"flag"
 	"fmt"
 	"os"
-	"paxos_raft/replica/src"
 )
 
 func main() {

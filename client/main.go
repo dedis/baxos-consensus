@@ -1,9 +1,9 @@
 package main
 
 import (
+	"baxos/client/src"
+	src2 "baxos/replica/src"
 	"flag"
-	"paxos_raft/client/src"
-	src2 "paxos_raft/replica/src"
 	"time"
 )
 

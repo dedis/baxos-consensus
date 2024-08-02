@@ -16,6 +16,11 @@ type RPCPair struct {
 	Obj  Serializable
 }
 
+type OutgoingRPC struct {
+	RpcPair *RPCPair
+	Peer    int32
+}
+
 /*
 	Returns the self ip:port
 */

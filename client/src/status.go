@@ -1,8 +1,8 @@
 package src
 
 import (
+	"baxos/replica/src"
 	"fmt"
-	"paxos_raft/replica/src"
 	"time"
 )
 

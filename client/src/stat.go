@@ -1,10 +1,10 @@
 package src
 
 import (
+	"baxos/replica/src"
 	"fmt"
 	"github.com/montanaflynn/stats"
 	"os"
-	"paxos_raft/replica/src"
 	"strconv"
 )
 

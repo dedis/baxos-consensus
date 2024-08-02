@@ -1,10 +1,10 @@
 package src
 
 import (
+	"baxos/replica/src"
 	"fmt"
 	"math"
 	"math/rand"
-	"paxos_raft/replica/src"
 	"strconv"
 	"time"
 	"unsafe"

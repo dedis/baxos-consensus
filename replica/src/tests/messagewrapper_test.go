@@ -1,8 +1,8 @@
 package tests
 
 import (
+	"baxos/replica/src"
 	"bytes"
-	"paxos_raft/replica/src"
 	"testing"
 )
 
