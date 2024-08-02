@@ -23,32 +23,20 @@ func (rp *Replica) handleStatus(message *common.Status) {
 	} else if message.Type == 2 {
 		if rp.logPrinted == false {
 			rp.logPrinted = true
-			rp.cancel <- true
-			rp.cancel <- true
-			// empty the incoming channel
-			go func() {
-				for true {
-					_ = <-rp.incomingChan
-				}
-			}()
-
-			rp.printPaxosLogConsensus() // this is for consensus testing purposes
-
-			//fmt.Printf("num go routines: %v \n", runtime.NumGoroutine())
+			rp.printBaxosLogConsensus() // this is for consensus testing purposes
 		}
 	} else if message.Type == 3 {
 		if rp.consensusStarted == false {
 			rp.consensusStarted = true
 			rp.lastProposedTime = time.Now()
-			rp.sendDummyRequests(rp.cancel)
-			rp.paxosConsensus.run()
-			//rp.debug("started paxos consensus with initial prepare", 0)
-
+			if rp.debugOn {
+				rp.debug("started baxos consensus", 0)
+			}
 		}
 	}
-
-	//rp.debug("Sending status reply ", 0)
-
+	if rp.debugOn {
+		rp.debug("Sending status reply ", 0)
+	}
 	statusMessage := common.Status{
 		Type: message.Type,
 		Note: message.Note,
@@ -60,6 +48,7 @@ func (rp *Replica) handleStatus(message *common.Status) {
 	}
 
 	rp.sendMessage(int32(message.Sender), rpcPair)
-	//rp.debug("Sent status ", 0)
-
+	if rp.debugOn {
+		rp.debug("Sent status ", 0)
+	}
 }

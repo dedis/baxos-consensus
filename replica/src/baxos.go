@@ -121,18 +121,6 @@ func InitBaxosConsensus(name int32, replica *Replica, isAsync bool, asyncTimeout
 	}
 }
 
-// start the initial leader
-
-func (p *Paxos) run() {
-	p.startTime = time.Now()
-	initLeader := int32(1)
-
-	if p.name == initLeader {
-		p.replica.sendPrepare()
-	}
-
-}
-
 /*
 	append N new instances to the log
 */
@@ -240,7 +228,7 @@ func (rp *Replica) setPaxosViewTimer(view int32) {
 	print the replicated log to check for log consistency
 */
 
-func (rp *Replica) printPaxosLogConsensus() {
+func (rp *Replica) printBaxosLogConsensus() {
 	f, err := os.Create(rp.logFilePath + strconv.Itoa(int(rp.name)) + "-consensus.txt")
 	if err != nil {
 		panic(err.Error())
