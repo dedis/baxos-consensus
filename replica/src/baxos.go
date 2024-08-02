@@ -60,6 +60,10 @@ type Baxos struct {
 	asyncTimeout int
 }
 
+func (rp *Replica) handleBaxosConsensus(message *common.RPCPair) {
+
+}
+
 /*
 	init Paxos Consensus data structs
 */
