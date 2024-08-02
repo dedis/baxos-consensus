@@ -31,7 +31,7 @@ func (cl *Client) handleClientResponseBatch(batch *src.ClientBatch) {
 	cl.receivedNumMutex.Lock()
 	cl.numReceivedBatches++
 	cl.receivedNumMutex.Unlock()
-	//cl.debug("Added response Batch with id "+batch.UniqueId, 0)
+	cl.debug("Added response Batch with id "+batch.UniqueId, 0)
 }
 
 /*
@@ -55,7 +55,8 @@ func (cl *Client) SendRequests() {
 }
 
 /*
-	Each request generator generates requests by generating string requests, forming batches, send batches and save them in the correct sent array
+	Each request generator generates requests by generating string requests,
+	forming batches, send batches and save them in the correct sent array
 */
 
 func (cl *Client) startRequestGenerators() {
@@ -91,7 +92,9 @@ func (cl *Client) startRequestGenerators() {
 					var requests_i []*src.SingleOperation
 
 					for j := 0; j < len(requests); j++ {
-						requests_i = append(requests_i, requests[j])
+						requests_i = append(requests_i, &src.SingleOperation{
+							Command: requests[j].Command,
+						})
 					}
 
 					// create a new client batch
@@ -100,7 +103,7 @@ func (cl *Client) startRequestGenerators() {
 						Requests: requests_i,
 						Sender:   int64(cl.clientName),
 					}
-					//cl.debug("Sending "+strconv.Itoa(int(cl.clientName))+"."+strconv.Itoa(threadNumber)+"."+strconv.Itoa(localCounter)+" batch size "+strconv.Itoa(len(requests)), 0)
+					cl.debug("Sending "+strconv.Itoa(int(cl.clientName))+"."+strconv.Itoa(threadNumber)+"."+strconv.Itoa(localCounter)+" batch size "+strconv.Itoa(len(requests)), 0)
 
 					rpcPair := src.RPCPair{
 						Code: cl.messageCodes.ClientBatchRpc,
@@ -117,9 +120,9 @@ func (cl *Client) startRequestGenerators() {
 				}
 
 				cl.numSentBatches++
-
 				localCounter++
 				lastSent = time.Now()
+
 				cl.sentRequests[threadNumber] = append(cl.sentRequests[threadNumber], requestBatch{
 					batch: batch,
 					time:  time.Now(),
