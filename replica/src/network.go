@@ -157,6 +157,12 @@ func (rp *Replica) Run() {
 
 	for true {
 		select {
+		case _ = <-rp.baxosConsensus.wakeupChan:
+			rp.proposeAfterBackingOff()
+			break
+		case instance := <-rp.baxosConsensus.timeOutChan:
+			rp.randomBackOff(instance)
+			break
 		case replicaMessage := <-rp.incomingChan:
 			if rp.debugOn {
 				rp.debug("Received replica message", 0)

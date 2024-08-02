@@ -2,6 +2,8 @@ package src
 
 import (
 	"baxos/common"
+	"math"
+	"math/rand"
 	"os"
 	"strconv"
 	"time"
@@ -46,9 +48,12 @@ type Baxos struct {
 	replicatedLog         []BaxosInstance         // the replicated log of commands
 	timer                 *common.TimerWithCancel // the timer for collecting promise / accept responses
 	roundTripTime         int64                   // network round trip time in microseconds
+	timeOutChan           chan int64
 
 	isBackingOff bool                    // if the replica is backing off
+	isProposing  bool                    // if the replica is proposing
 	wakeupTimer  *common.TimerWithCancel // to wake up after backing off
+	wakeupChan   chan bool               // to indicate that backoff period has been gone
 	retries      int
 
 	startTime time.Time // time when the consensus was started
@@ -57,6 +62,12 @@ type Baxos struct {
 
 	isAsync      bool
 	asyncTimeout int
+}
+
+func (rp *Replica) calculateBackOffTime() time.Duration {
+	// k × 2^l × 2 × RTT
+	k := 1.0 - rand.Float64()
+	return time.Duration(k * math.Pow(2, float64(rp.baxosConsensus.retries+1)) * float64(rp.baxosConsensus.roundTripTime))
 }
 
 // external API for Baxos messages
@@ -115,8 +126,11 @@ func InitBaxosConsensus(name int32, replica *Replica, isAsync bool, asyncTimeout
 		replicatedLog:         replicatedLog,
 		timer:                 nil,
 		roundTripTime:         round_trip_time,
+		timeOutChan:           make(chan int64, 1),
 		isBackingOff:          false,
+		isProposing:           false,
 		wakeupTimer:           nil,
+		wakeupChan:            make(chan bool, 1),
 		retries:               0,
 		startTime:             time.Now(),
 		replica:               replica,

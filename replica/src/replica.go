@@ -72,7 +72,7 @@ const outgoingBufferSize = 100000000 // size of the buffer that collects message
 	instantiate a new replica instance, allocate the buffers
 */
 
-func New(name int32, cfg *common.InstanceConfig, logFilePath string, replicaBatchSize int, replicaBatchTime int, debugOn bool, debugLevel int, benchmarkMode int, keyLen int, valLen int, isAsync bool, asyncTimeout int, timeEpochSize int) *Replica {
+func New(name int32, cfg *common.InstanceConfig, logFilePath string, replicaBatchSize int, replicaBatchTime int, debugOn bool, debugLevel int, benchmarkMode int, keyLen int, valLen int, isAsync bool, asyncTimeout int, timeEpochSize int, round_trip_time int64) *Replica {
 	rp := Replica{
 		name:          name,
 		listenAddress: common.GetAddress(cfg.Peers, name),
@@ -164,7 +164,7 @@ func New(name int32, cfg *common.InstanceConfig, logFilePath string, replicaBatc
 		}
 	}
 
-	rp.baxosConsensus = InitBaxosConsensus(name, &rp, isAsync, asyncTimeout) // reassign parameters later
+	rp.baxosConsensus = InitBaxosConsensus(name, &rp, isAsync, asyncTimeout, round_trip_time) // reassign parameters later
 
 	pid := os.Getpid()
 	fmt.Printf("--Initialized replica %v with process id: %v \n", name, pid)
