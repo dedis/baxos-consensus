@@ -16,7 +16,7 @@ import (
 */
 
 type Client struct {
-	clientName  int32 // unique client identifier as defined in the local-configuration.yml
+	clientName  int32 // unique client identifier as defined in the configuration
 	numReplicas int   // number of replicas
 
 	replicaAddrList             map[int32]string        // map with the IP:port address of every replica node
@@ -117,7 +117,7 @@ func New(name int32, cfg *src.InstanceConfig, logFilePath string, clientBatchSiz
 		receivedNumMutex:    &sync.Mutex{},
 	}
 
-	//cl.debug("Created a new client instance", 0)
+	cl.debug("Created a new client instance", 0)
 
 	// initialize replicaAddrList
 	for i := 0; i < len(cfg.Peers); i++ {
@@ -132,7 +132,7 @@ func New(name int32, cfg *src.InstanceConfig, logFilePath string, clientBatchSiz
 	cl.RegisterRPC(new(src.ClientBatch), cl.messageCodes.ClientBatchRpc)
 	cl.RegisterRPC(new(src.Status), cl.messageCodes.StatusRPC)
 
-	//cl.debug("Registered RPCs in the table", 0)
+	cl.debug("Registered RPCs in the table", 0)
 
 	// Set random seed
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -151,8 +151,8 @@ func (cl *Client) RegisterRPC(msgObj src.Serializable, code uint8) {
 	cl.rpcTable[code] = &src.RPCPair{Code: code, Obj: msgObj}
 }
 
-//func (cl *Client) debug(message string, level int) {
-//	if cl.debugOn && level >= cl.debugLevel {
-//		fmt.Printf("%v\n", message)
-//	}
-//}
+func (cl *Client) debug(message string, level int) {
+	if cl.debugOn && level >= cl.debugLevel {
+		fmt.Printf("%v\n", message)
+	}
+}
