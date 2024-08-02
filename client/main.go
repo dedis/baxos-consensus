@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	name := flag.Int64("name", 21, "name of the client as specified in the local-configuration.yml")
+	name := flag.Int64("name", 51, "name of the client as specified in the local-configuration.yml")
 	configFile := flag.String("config", "configuration/local/local-configuration.yml", "configuration file")
 	logFilePath := flag.String("logFilePath", "logs/", "log file path")
 	batchSize := flag.Int("batchSize", 50, "client batch size")
