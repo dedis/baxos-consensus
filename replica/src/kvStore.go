@@ -70,13 +70,13 @@ func Init(mode int, name int32, keyLen int, valueLen int) *Benchmark {
 */
 
 func (b *Benchmark) Execute(requests []*common.ClientBatch) []*common.ClientBatch {
-	var commands []*common.ClientBatch
+	var replies []*common.ClientBatch
 	if b.mode == 0 {
-		commands = b.residentExecute(requests)
+		replies = b.residentExecute(requests)
 	} else {
-		commands = b.redisExecute(requests)
+		replies = b.redisExecute(requests)
 	}
-	return commands
+	return replies
 }
 
 /*

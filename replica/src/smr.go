@@ -23,11 +23,7 @@ func (rp *Replica) sendClientResponses(responses []*common.ClientBatch) {
 	for i := 0; i < len(responses); i++ {
 		rp.sendMessage(int32(responses[i].Sender), common.RPCPair{
 			Code: rp.messageCodes.ClientBatchRpc,
-			Obj: &common.ClientBatch{
-				UniqueId: responses[i].UniqueId,
-				Requests: nil,
-				Sender:   responses[i].Sender,
-			},
+			Obj:  responses[i],
 		})
 		if rp.debugOn {
 			rp.debug("sent client response to "+strconv.Itoa(int(responses[i].Sender)), 0)
