@@ -60,6 +60,8 @@ type Baxos struct {
 
 	isAsync      bool // to simulate an asynchronous network
 	asyncTimeout int
+
+	quorumSize int32
 }
 
 /*
@@ -90,6 +92,7 @@ func InitBaxosConsensus(replica *Replica, isAsync bool, asyncTimeout int, roundT
 		replica:               replica,
 		isAsync:               isAsync,
 		asyncTimeout:          asyncTimeout,
+		quorumSize:            int32(replica.numReplicas/2 + 1),
 	}
 }
 

@@ -22,8 +22,7 @@ message ClientBatch {
 */
 
 message ReplicaBatch {
-  string unique_id = 1;
-  repeated ClientBatch requests = 2;
+  repeated ClientBatch requests = 1;
 }
 
 /*
