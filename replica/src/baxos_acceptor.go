@@ -107,8 +107,11 @@ func (rp *Replica) handlePropose(message *common.ProposeRequest) {
 	// handle the decided slot
 	if message.DecideInfo != nil {
 		rp.createInstance(int(message.DecideInfo.InstanceNumber))
-		rp.baxosConsensus.replicatedLog[message.DecideInfo.InstanceNumber].decided = true
-		rp.baxosConsensus.replicatedLog[message.DecideInfo.InstanceNumber].decidedValue = *message.DecideInfo.DecidedValue
-		rp.updateSMR()
+		if rp.baxosConsensus.replicatedLog[message.DecideInfo.InstanceNumber].decided {
+			rp.baxosConsensus.replicatedLog[message.DecideInfo.InstanceNumber].decided = true
+			rp.baxosConsensus.replicatedLog[message.DecideInfo.InstanceNumber].decidedValue = *message.DecideInfo.DecidedValue
+			rp.updateSMR()
+		}
+
 	}
 }
