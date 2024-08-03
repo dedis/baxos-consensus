@@ -9,6 +9,7 @@ import (
 
 func (rp *Replica) handleClientBatch(batch *common.ClientBatch) {
 	rp.incomingRequests = append(rp.incomingRequests, batch)
+	rp.tryPropose()
 }
 
 // call the state machine
