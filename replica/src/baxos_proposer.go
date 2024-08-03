@@ -254,6 +254,10 @@ func (rp *Replica) handleAccept(message *common.AcceptReply) {
 			rp.baxosConsensus.replicatedLog[message.InstanceNumber].decidedValue = rp.baxosConsensus.replicatedLog[message.InstanceNumber].proposer_bookkeeping.proposedValue
 			rp.updateSMR()
 			rp.baxosConsensus.isProposing = false
+			rp.baxosConsensus.retries--
+			if rp.baxosConsensus.retries < 0 {
+				rp.baxosConsensus.retries = 0
+			}
 			if rp.baxosConsensus.timer != nil {
 				rp.baxosConsensus.timer.Cancel()
 			}

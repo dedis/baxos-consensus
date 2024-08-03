@@ -54,8 +54,6 @@ type Baxos struct {
 	wakeupChan   chan bool               // to indicate that backoff period is completed
 	retries      int                     // number of retries
 
-	startTime time.Time // time when the consensus was started
-
 	replica *Replica
 
 	isAsync      bool // to simulate an asynchronous network
@@ -88,7 +86,6 @@ func InitBaxosConsensus(replica *Replica, isAsync bool, asyncTimeout int, roundT
 		wakeupTimer:           nil,
 		wakeupChan:            make(chan bool, 1),
 		retries:               0,
-		startTime:             time.Now(),
 		replica:               replica,
 		isAsync:               isAsync,
 		asyncTimeout:          asyncTimeout,
@@ -99,7 +96,7 @@ func InitBaxosConsensus(replica *Replica, isAsync bool, asyncTimeout int, roundT
 // calculate the backoff time for the proposer
 
 func (rp *Replica) calculateBackOffTime() time.Duration {
-	// k × 2^l × 2 × RTT
+	// k × 2^retries × 2 × RTT
 	k := 1.0 - rand.Float64()
 	backoff_time := k * math.Pow(2, float64(rp.baxosConsensus.retries+1)) * float64(rp.baxosConsensus.roundTripTime)
 	if rp.debugOn {
@@ -152,6 +149,7 @@ func (rp *Replica) handleBaxosConsensus(message common.Serializable, code uint8)
 func (rp *Replica) createInstance(n int) {
 
 	if len(rp.baxosConsensus.replicatedLog) > n {
+		// already exists
 		return
 	}
 
@@ -221,6 +219,5 @@ func (rp *Replica) updateSMR() {
 		} else {
 			break
 		}
-
 	}
 }
