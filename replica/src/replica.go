@@ -164,7 +164,7 @@ func New(name int32, cfg *common.InstanceConfig, logFilePath string, replicaBatc
 		}
 	}
 
-	rp.baxosConsensus = InitBaxosConsensus(name, &rp, isAsync, asyncTimeout, round_trip_time) // reassign parameters later
+	rp.baxosConsensus = InitBaxosConsensus(&rp, isAsync, asyncTimeout, round_trip_time) // reassign parameters later
 
 	pid := os.Getpid()
 	fmt.Printf("--Initialized replica %v with process id: %v \n", name, pid)
