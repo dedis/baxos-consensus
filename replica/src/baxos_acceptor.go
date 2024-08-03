@@ -35,7 +35,7 @@ func (rp *Replica) processPrepare(message *common.PrepareRequest) *common.Promis
 }
 
 /*
-	Handler for prepare message, check if it is possible to promise for the specified instance
+	Handler for prepare message
 */
 
 func (rp *Replica) handlePrepare(message *common.PrepareRequest) {
@@ -86,18 +86,18 @@ func (rp *Replica) processPropose(message *common.ProposeRequest) *common.Accept
 }
 
 /*
-	handler for propose message, If the propose ballot number is greater than or equal to the promised ballot number,
-	set the accepted ballot and accepted values, and send
-	an accept message, also record the decided message for the previous instance
+	handler for propose message
 */
 
 func (rp *Replica) handlePropose(message *common.ProposeRequest) {
+
+	// handle the prepare slot for the next instance
+	promiseResponse := rp.processPrepare(message.PrepareRequestForFutureIndex)
+
 	// handle the propose slot
 	acceptReply := rp.processPropose(message)
 
-	// handle the prepare slot
-	promiseResponse := rp.processPrepare(message.PrepareRequestForFutureIndex)
-	acceptReply.PromiseReplyForFutureIndex = promiseResponse
+	acceptReply.PromiseReplyForFutureIndex = promiseResponse // can be nil
 
 	rp.sendMessage(int32(message.Sender), common.RPCPair{
 		Code: rp.messageCodes.AcceptReply,
