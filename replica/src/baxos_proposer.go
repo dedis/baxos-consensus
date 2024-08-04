@@ -46,7 +46,11 @@ func (rp *Replica) randomBackOff(instance int64) {
 	}
 
 	// set the backing off timer
-	rp.baxosConsensus.wakeupTimer = common.NewTimerWithCancel(rp.calculateBackOffTime() * time.Microsecond)
+	backoffTime := rp.calculateBackOffTime() * time.Microsecond
+	if rp.debugOn {
+		rp.debug("PROPOSER: Backing off for "+strconv.Itoa(int(backoffTime))+" microseconds", 1)
+	}
+	rp.baxosConsensus.wakeupTimer = common.NewTimerWithCancel(backoffTime)
 
 	rp.baxosConsensus.wakeupTimer.SetTimeoutFuntion(func() {
 		rp.baxosConsensus.wakeupChan <- true
@@ -54,6 +58,7 @@ func (rp *Replica) randomBackOff(instance int64) {
 			rp.debug("PROPOSER: Finished backing off ", 1)
 		}
 	})
+	rp.baxosConsensus.wakeupTimer.Start()
 }
 
 // this is triggered after the backoff timer timeouts and the proposer is ready to propose again
