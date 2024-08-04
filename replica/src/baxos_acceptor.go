@@ -14,7 +14,7 @@ func (rp *Replica) processPrepare(message *common.PrepareRequest) *common.Promis
 
 	if rp.baxosConsensus.replicatedLog[message.InstanceNumber].decided {
 		if rp.debugOn {
-			rp.debug(fmt.Sprintf("Instance %d already decided, hence sending a promise reply with the decided value", message.InstanceNumber), 0)
+			rp.debug(fmt.Sprintf("Instance %d already decided, hence sending a promise reply with the decided value", message.InstanceNumber), 1)
 		}
 		return &common.PromiseReply{
 			InstanceNumber: message.InstanceNumber,
@@ -28,7 +28,7 @@ func (rp *Replica) processPrepare(message *common.PrepareRequest) *common.Promis
 	if rp.baxosConsensus.replicatedLog[message.InstanceNumber].acceptor_bookkeeping.promisedBallot < message.PrepareBallot {
 		rp.baxosConsensus.replicatedLog[message.InstanceNumber].acceptor_bookkeeping.promisedBallot = message.PrepareBallot
 		if rp.debugOn {
-			rp.debug(fmt.Sprintf("Prepare with ballot %d accepted, hence sending a promise reply for instance %d", message.PrepareBallot, message.InstanceNumber), 0)
+			rp.debug(fmt.Sprintf("Prepare with ballot %d accepted, hence sending a promise reply for instance %d", message.PrepareBallot, message.InstanceNumber), 1)
 		}
 		return &common.PromiseReply{
 			InstanceNumber:     message.InstanceNumber,
@@ -70,7 +70,7 @@ func (rp *Replica) processPropose(message *common.ProposeRequest) *common.Accept
 
 	if rp.baxosConsensus.replicatedLog[message.InstanceNumber].decided {
 		if rp.debugOn {
-			rp.debug(fmt.Sprintf("Instance %d already decided, hence sending a accept reply with the decided value", message.InstanceNumber), 0)
+			rp.debug(fmt.Sprintf("Instance %d already decided, hence sending a accept reply with the decided value", message.InstanceNumber), 1)
 		}
 		return &common.AcceptReply{
 			InstanceNumber: message.InstanceNumber,
@@ -85,7 +85,7 @@ func (rp *Replica) processPropose(message *common.ProposeRequest) *common.Accept
 		rp.baxosConsensus.replicatedLog[message.InstanceNumber].acceptor_bookkeeping.acceptedBallot = message.ProposeBallot
 		rp.baxosConsensus.replicatedLog[message.InstanceNumber].acceptor_bookkeeping.acceptedValue = *message.ProposeValue
 		if rp.debugOn {
-			rp.debug(fmt.Sprintf("Accepted propose for instance %d, hence sending a accept", message.InstanceNumber), 0)
+			rp.debug(fmt.Sprintf("Accepted propose with ballot %d for instance %d, hence sending a accept", message.ProposeBallot, message.InstanceNumber), 1)
 		}
 		return &common.AcceptReply{
 			InstanceNumber: message.InstanceNumber,
@@ -95,7 +95,7 @@ func (rp *Replica) processPropose(message *common.ProposeRequest) *common.Accept
 		}
 	} else {
 		if rp.debugOn {
-			rp.debug(fmt.Sprintf("Propose rejected for instance %d", message.InstanceNumber), 0)
+			rp.debug(fmt.Sprintf("Propose rejected for instance %d with ballot %d", message.InstanceNumber, message.ProposeBallot), 1)
 		}
 		return &common.AcceptReply{
 			InstanceNumber: message.InstanceNumber,
