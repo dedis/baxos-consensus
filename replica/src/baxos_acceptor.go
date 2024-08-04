@@ -10,6 +10,9 @@ import (
 */
 
 func (rp *Replica) processPrepare(message *common.PrepareRequest) *common.PromiseReply {
+	if message == nil {
+		return nil
+	}
 	rp.createInstance(int(message.InstanceNumber))
 
 	if rp.baxosConsensus.replicatedLog[message.InstanceNumber].decided {
@@ -111,13 +114,8 @@ func (rp *Replica) processPropose(message *common.ProposeRequest) *common.Accept
 
 func (rp *Replica) handlePropose(message *common.ProposeRequest) {
 
-	// handle the prepare slot for the next instance
-	promiseResponse := rp.processPrepare(message.PrepareRequestForFutureIndex)
-
 	// handle the propose slot
 	acceptReply := rp.processPropose(message)
-
-	acceptReply.PromiseReplyForFutureIndex = promiseResponse // can be nil
 
 	rp.sendMessage(int32(message.Sender), common.RPCPair{
 		Code: rp.messageCodes.AcceptReply,

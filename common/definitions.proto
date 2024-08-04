@@ -67,9 +67,8 @@ message ProposeRequest {
   int32 propose_ballot = 2;
   ReplicaBatch propose_value = 3;
 
-  PrepareRequest prepare_request_for_future_index = 4;
-  int64 sender = 5;
-  DecideInfo decide_info = 6;
+  int64 sender = 4;
+  DecideInfo decide_info = 5;
 }
 
 message AcceptReply {
@@ -80,6 +79,5 @@ message AcceptReply {
   bool decided = 4; // if the current instance is already decided
   ReplicaBatch decided_value = 5;
 
-  PromiseReply promise_reply_for_future_index = 6;
-  int64 sender = 7;
+  int64 sender = 6;
 }

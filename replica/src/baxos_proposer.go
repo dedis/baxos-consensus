@@ -193,25 +193,8 @@ func (rp *Replica) tryPropose() {
 		return
 	}
 
-	nextFreeInstance := rp.baxosConsensus.lastCommittedLogIndex + 1
-	rp.createInstance(int(nextFreeInstance))
-	for rp.baxosConsensus.replicatedLog[nextFreeInstance].decided {
-		nextFreeInstance++
-		rp.createInstance(int(nextFreeInstance))
-	}
-
-	if rp.baxosConsensus.replicatedLog[nextFreeInstance].proposer_bookkeeping.numSuccessfulPromises >= rp.baxosConsensus.quorumSize {
-		if rp.debugOn {
-			rp.debug("PROPOSER: Already have enough promises, hence proposing for instance "+strconv.Itoa(int(nextFreeInstance)), 1)
-		}
-		rp.sendPropose(nextFreeInstance)
-	} else {
-		if rp.debugOn {
-			rp.debug("PROPOSER: Not enough promises for instance "+strconv.Itoa(int(nextFreeInstance))+" hence sending prepare", 1)
-		}
-		rp.sendPrepare()
-		rp.baxosConsensus.isProposing = true
-	}
+	rp.sendPrepare()
+	rp.baxosConsensus.isProposing = true
 
 }
 
@@ -222,27 +205,6 @@ func (rp *Replica) tryPropose() {
 func (rp *Replica) sendPropose(instance int32) {
 
 	rp.createInstance(int(instance + 1))
-
-	// set the prepare request for the next instance
-	var prepareRequest *common.PrepareRequest
-
-	if rp.baxosConsensus.replicatedLog[instance+1].decided || rp.baxosConsensus.replicatedLog[instance+1].proposer_bookkeeping.numSuccessfulPromises >= rp.baxosConsensus.quorumSize {
-		// nothing to prepare
-		if rp.debugOn {
-			rp.debug("PROPOSER: No need to prepare for the next instance "+strconv.Itoa(int(instance+1)), 1)
-		}
-		prepareRequest = nil
-	} else {
-		rp.baxosConsensus.replicatedLog[instance+1].proposer_bookkeeping.preparedBallot = rp.baxosConsensus.replicatedLog[instance+1].acceptor_bookkeeping.promisedBallot + rp.name + 1
-		prepareRequest = &common.PrepareRequest{
-			InstanceNumber: instance + 1,
-			PrepareBallot:  rp.baxosConsensus.replicatedLog[instance+1].proposer_bookkeeping.preparedBallot,
-			Sender:         int64(rp.name),
-		}
-		if rp.debugOn {
-			rp.debug("PROPOSER: Appending prepare message for the next instance "+strconv.Itoa(int(instance+1))+" with ballot "+strconv.Itoa(int(rp.baxosConsensus.replicatedLog[instance+1].proposer_bookkeeping.preparedBallot))+" inside the propose message", 1)
-		}
-	}
 
 	// set the decided info
 
@@ -284,12 +246,11 @@ func (rp *Replica) sendPropose(instance int32) {
 
 	for k, _ := range rp.replicaAddrList {
 		proposeRequest := common.ProposeRequest{
-			InstanceNumber:               instance,
-			ProposeBallot:                rp.baxosConsensus.replicatedLog[instance].proposer_bookkeeping.preparedBallot,
-			ProposeValue:                 proposeValue,
-			PrepareRequestForFutureIndex: prepareRequest,
-			Sender:                       int64(rp.name),
-			DecideInfo:                   &decideInfo,
+			InstanceNumber: instance,
+			ProposeBallot:  rp.baxosConsensus.replicatedLog[instance].proposer_bookkeeping.preparedBallot,
+			ProposeValue:   proposeValue,
+			Sender:         int64(rp.name),
+			DecideInfo:     &decideInfo,
 		}
 		rp.sendMessage(k, common.RPCPair{Code: rp.messageCodes.ProposeRequest, Obj: &proposeRequest})
 	}
@@ -309,10 +270,6 @@ func (rp *Replica) sendPropose(instance int32) {
 */
 
 func (rp *Replica) handleAccept(message *common.AcceptReply) {
-
-	if message.PromiseReplyForFutureIndex != nil {
-		rp.handlePromise(message.PromiseReplyForFutureIndex, false)
-	}
 
 	if rp.baxosConsensus.replicatedLog[message.InstanceNumber].decided {
 		if rp.debugOn {
