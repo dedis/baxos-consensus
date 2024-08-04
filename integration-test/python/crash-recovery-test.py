@@ -23,7 +23,7 @@ def find_process_ids(process_logs):
                 line = lines[j]
                 break
         
-        process_id = line.split(" ")[7]
+        process_id = line.split(" ")[6]
         process_ids.append(process_id)
     return process_ids
 

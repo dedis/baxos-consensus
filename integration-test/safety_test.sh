@@ -39,6 +39,11 @@ nohup ./${ctl_path} --name 53 --logFilePath ${output_path} --requestType request
 nohup ./${ctl_path} --name 54 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 0 --arrivalRate "${arrivalRate}"  >${output_path}54.log &
 nohup ./${ctl_path} --name 55 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 0 --arrivalRate "${arrivalRate}"  >${output_path}55.log &
 
+sleep 10
+
+# python3 integration-test/python/crash-recovery-test.py ${output_path}/1.log ${output_path}/2.log ${output_path}/3.log ${output_path}/4.log ${output_path}/5.log > ${output_path}crash_recovery.log
+
+
 sleep 120
 
 echo "finished running clients"
