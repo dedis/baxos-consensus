@@ -17,7 +17,7 @@ import (
 
 func (rp *Replica) ConnectToNode(id int32, address string, nodeType string) {
 	if rp.debugOn {
-		rp.debug("Connecting to "+strconv.Itoa(int(id)), 0)
+		rp.debug("Connecting to "+strconv.Itoa(int(id))+" in address "+address, 3)
 	}
 
 	var b [4]byte
@@ -44,9 +44,14 @@ func (rp *Replica) ConnectToNode(id int32, address string, nodeType string) {
 				panic("Unknown node id")
 			}
 			if rp.debugOn {
-				rp.debug("Established outgoing connection to "+strconv.Itoa(int(id)), 0)
+				rp.debug("Established outgoing connection to "+strconv.Itoa(int(id)), 3)
 			}
 			break
+		} else {
+			if rp.debugOn {
+				rp.debug("Error while connecting to "+strconv.Itoa(int(id))+" "+err.Error(), 3)
+			}
+
 		}
 	}
 }
@@ -74,7 +79,7 @@ func (rp *Replica) connectionListener(reader *bufio.Reader, id int32) {
 	for true {
 		if msgType, err = reader.ReadByte(); err != nil {
 			if rp.debugOn {
-				rp.debug("Error while reading message code: connection broken from "+strconv.Itoa(int(id))+fmt.Sprintf(" %v", err), 0)
+				rp.debug("Error while reading message code: connection broken from "+strconv.Itoa(int(id))+fmt.Sprintf(" %v", err), 3)
 			}
 			return
 		}
@@ -82,7 +87,7 @@ func (rp *Replica) connectionListener(reader *bufio.Reader, id int32) {
 			obj := rpair.Obj.New()
 			if err = obj.Unmarshal(reader); err != nil {
 				if rp.debugOn {
-					rp.debug("Error while unmarshalling from "+strconv.Itoa(int(id))+fmt.Sprintf(" %v", err), 0)
+					rp.debug("Error while unmarshalling from "+strconv.Itoa(int(id))+fmt.Sprintf(" %v", err), 3)
 				}
 				return
 			}
@@ -95,7 +100,7 @@ func (rp *Replica) connectionListener(reader *bufio.Reader, id int32) {
 			}
 		} else {
 			if rp.debugOn {
-				rp.debug("Error received unknown message type from "+strconv.Itoa(int(id)), 0)
+				rp.debug("Error received unknown message type from "+strconv.Itoa(int(id)), 3)
 			}
 			return
 		}
@@ -112,7 +117,7 @@ func (rp *Replica) WaitForConnections() {
 		bs := b[:4]
 		Listener, _ := net.Listen("tcp", rp.listenAddress)
 		if rp.debugOn {
-			rp.debug("Listening to incoming connections in "+rp.listenAddress, 0)
+			rp.debug("Listening to incoming connections in "+rp.listenAddress, 3)
 		}
 		for true {
 			conn, err := Listener.Accept()
@@ -124,14 +129,14 @@ func (rp *Replica) WaitForConnections() {
 			}
 			id := int32(binary.LittleEndian.Uint16(bs))
 			if rp.debugOn {
-				rp.debug("Received incoming connection from "+strconv.Itoa(int(id)), 0)
+				rp.debug("Received incoming connection from "+strconv.Itoa(int(id)), 3)
 			}
 			nodeType := rp.getNodeType(id)
 			if nodeType == "client" {
 				rp.incomingClientReaders[id] = bufio.NewReader(conn)
 				go rp.connectionListener(rp.incomingClientReaders[id], id)
 				if rp.debugOn {
-					rp.debug("Started listening to client "+strconv.Itoa(int(id)), 0)
+					rp.debug("Started listening to client "+strconv.Itoa(int(id)), 3)
 				}
 				rp.ConnectToNode(id, rp.clientAddrList[id], "client")
 
@@ -139,7 +144,7 @@ func (rp *Replica) WaitForConnections() {
 				rp.incomingReplicaReaders[id] = bufio.NewReader(conn)
 				go rp.connectionListener(rp.incomingReplicaReaders[id], id)
 				if rp.debugOn {
-					rp.debug("Started listening to replica "+strconv.Itoa(int(id)), 0)
+					rp.debug("Started listening to replica "+strconv.Itoa(int(id)), 3)
 				}
 			} else {
 				panic("should not happen")
@@ -172,7 +177,7 @@ func (rp *Replica) Run() {
 			case rp.messageCodes.StatusRPC:
 				statusMessage := replicaMessage.Obj.(*common.Status)
 				if rp.debugOn {
-					rp.debug("Status message from "+fmt.Sprintf("%#v", statusMessage.Sender), 0)
+					rp.debug("Status message from "+fmt.Sprintf("%#v", statusMessage.Sender), 3)
 				}
 				rp.handleStatus(statusMessage)
 				break
@@ -208,7 +213,7 @@ func (rp *Replica) internalSendMessage(peer int32, rpcPair *common.RPCPair) {
 	if peerType == "replica" {
 		w := rp.outgoingReplicaWriters[peer]
 		if w == nil {
-			panic("replica not found")
+			panic("replica not found" + strconv.Itoa(int(peer)))
 		}
 		rp.outgoingReplicaWriterMutexs[peer].Lock()
 		err := w.WriteByte(rpcPair.Code)
@@ -301,11 +306,12 @@ func (rp *Replica) StartOutgoingLinks() {
 */
 
 func (rp *Replica) sendMessage(peer int32, rpcPair common.RPCPair) {
-	rp.outgoingMessageChan <- &common.OutgoingRPC{
-		RpcPair: &rpcPair,
-		Peer:    peer,
-	}
-	if rp.debugOn {
-		rp.debug("Added RPC pair to outgoing channel to peer "+strconv.Itoa(int(peer)), 0)
-	}
+	//rp.outgoingMessageChan <- &common.OutgoingRPC{
+	//	RpcPair: &rpcPair,
+	//	Peer:    peer,
+	//}
+	//if rp.debugOn {
+	//	rp.debug("Added RPC pair to outgoing channel to peer "+strconv.Itoa(int(peer)), 0)
+	//}
+	rp.internalSendMessage(peer, &rpcPair)
 }

@@ -16,7 +16,7 @@ import (
 
 func (cl *Client) ConnectToReplicas() {
 	if cl.debugOn {
-		cl.debug("connecting to replicas", 0)
+		cl.debug("connecting to replicas", 3)
 	}
 	var b [4]byte
 	bs := b[:4]
@@ -33,14 +33,14 @@ func (cl *Client) ConnectToReplicas() {
 					panic("error while connecting to replica " + strconv.Itoa(int(name)))
 				}
 				if cl.debugOn {
-					cl.debug("Established outgoing connection to "+strconv.Itoa(int(name)), 0)
+					cl.debug("Established outgoing connection to "+strconv.Itoa(int(name)), 3)
 				}
 				break
 			}
 		}
 	}
 	if cl.debugOn {
-		cl.debug("established outgoing connections to all replicas", 0)
+		cl.debug("established outgoing connections to all replicas", 3)
 	}
 }
 
@@ -57,7 +57,7 @@ func (cl *Client) WaitForConnections() {
 			panic("should not happen " + fmt.Sprintf("%v", err))
 		}
 		if cl.debugOn {
-			cl.debug("Listening to incoming connection from "+cl.clientListenAddress, 0)
+			cl.debug("Listening to incoming connection from "+cl.clientListenAddress, 3)
 		}
 		for true {
 			conn, err := Listener.Accept()
@@ -69,12 +69,12 @@ func (cl *Client) WaitForConnections() {
 			}
 			id := int32(binary.LittleEndian.Uint16(bs))
 			if cl.debugOn {
-				cl.debug("Received incoming connection from "+strconv.Itoa(int(id)), 0)
+				cl.debug("Received incoming connection from "+strconv.Itoa(int(id)), 3)
 			}
 			cl.incomingReplicaReaders[id] = bufio.NewReader(conn)
 			go cl.connectionListener(cl.incomingReplicaReaders[id], id)
 			if cl.debugOn {
-				cl.debug("Started listening to replica "+strconv.Itoa(int(id)), 0)
+				cl.debug("Started listening to replica "+strconv.Itoa(int(id)), 3)
 			}
 		}
 	}()
@@ -93,7 +93,7 @@ func (cl *Client) connectionListener(reader *bufio.Reader, id int32) {
 
 		if msgType, err = reader.ReadByte(); err != nil {
 			if cl.debugOn {
-				cl.debug("error while reading message code: connection broken from "+strconv.Itoa(int(id)), 0)
+				cl.debug("error while reading message code: connection broken from "+strconv.Itoa(int(id)), 3)
 			}
 			return
 		}
@@ -115,7 +115,7 @@ func (cl *Client) connectionListener(reader *bufio.Reader, id int32) {
 			}
 		} else {
 			if cl.debugOn {
-				cl.debug("error received unknown message type from "+strconv.Itoa(int(id)), 0)
+				cl.debug("error received unknown message type from "+strconv.Itoa(int(id)), 3)
 			}
 			return
 		}
@@ -149,7 +149,7 @@ func (cl *Client) Run() {
 			case cl.messageCodes.StatusRPC:
 				clientStatusResponse := replicaMessage.Obj.(*common.Status)
 				if cl.debugOn {
-					cl.debug("Client status "+fmt.Sprintf("%#v", clientStatusResponse), 0)
+					cl.debug("Client status "+fmt.Sprintf("%#v", clientStatusResponse), 3)
 				}
 				cl.handleClientStatusResponse(clientStatusResponse)
 				break

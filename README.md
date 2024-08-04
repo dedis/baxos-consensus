@@ -1,6 +1,6 @@
 # Baxos Consensus
 
-This repository implements Baxos consensus.
+This repository implements Baxos Consensus.
 
 This repository uses [Protocol Buffers](https://developers.google.com/protocol-buffers/).
 It requires the ```protoc``` compiler with the ```go``` output plugin installed.

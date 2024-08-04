@@ -35,9 +35,11 @@ func main() {
 	cl.WaitForConnections()
 	cl.Run()
 	cl.StartOutgoingLinks()
+	time.Sleep(1 * time.Second)
+
 	cl.ConnectToReplicas()
 
-	time.Sleep(15 * time.Second)
+	time.Sleep(10 * time.Second)
 
 	if cl.RequestType == "status" {
 		cl.SendStatus(cl.OperationType)

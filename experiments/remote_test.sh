@@ -26,11 +26,11 @@ echo "Killed previously running instances"
 
 echo "starting replicas"
 
-nohup ssh ${replica1}  -i ${cert}   "pkill replica; ./${replica_path} --name 1 --debugOn --debugLevel 0 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}1.log &
-nohup ssh ${replica2}  -i ${cert}   "pkill replica; ./${replica_path} --name 2 --debugOn --debugLevel 0 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}2.log &
-nohup ssh ${replica3}  -i ${cert}   "pkill replica; ./${replica_path} --name 3 --debugOn --debugLevel 0 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}3.log &
-nohup ssh ${replica4}  -i ${cert}   "pkill replica; ./${replica_path} --name 4 --debugOn --debugLevel 0 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}4.log &
-nohup ssh ${replica5}  -i ${cert}   "pkill replica; ./${replica_path} --name 5 --debugOn --debugLevel 0 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}5.log &
+nohup ssh ${replica1}  -i ${cert}   "pkill replica; ./${replica_path} --name 1 --debugOn --debugLevel 20 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}1.log &
+nohup ssh ${replica2}  -i ${cert}   "pkill replica; ./${replica_path} --name 2 --debugOn --debugLevel 20 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}2.log &
+nohup ssh ${replica3}  -i ${cert}   "pkill replica; ./${replica_path} --name 3 --debugOn --debugLevel 20 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}3.log &
+nohup ssh ${replica4}  -i ${cert}   "pkill replica; ./${replica_path} --name 4 --debugOn --debugLevel 20 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}4.log &
+nohup ssh ${replica5}  -i ${cert}   "pkill replica; ./${replica_path} --name 5 --debugOn --debugLevel 20 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}5.log &
 
 echo "Started replicas"
 
@@ -40,21 +40,21 @@ nohup ssh ${replica6} -i ${cert}   "pkill client; ./${ctl_path} --name 51 --logF
 
 echo "Sent initial status to bootstrap"
 
-sleep 15
+sleep 20
 
 echo "Starting client[s]"
 
-nohup ssh ${replica6}   -i ${cert}   "pkill client; ./${ctl_path} --name 51 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 0 --arrivalRate "${arrivalRate}" --config ${config}"  >${local_output_path}51.log &
-nohup ssh ${replica7}   -i ${cert}   "pkill client; ./${ctl_path} --name 52 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 0 --arrivalRate "${arrivalRate}" --config ${config}"  >${local_output_path}52.log &
-nohup ssh ${replica8}   -i ${cert}   "pkill client; ./${ctl_path} --name 53 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 0 --arrivalRate "${arrivalRate}" --config ${config}"  >${local_output_path}53.log &
-nohup ssh ${replica9}   -i ${cert}   "pkill client; ./${ctl_path} --name 54 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 0 --arrivalRate "${arrivalRate}" --config ${config}"  >${local_output_path}54.log &
-nohup ssh ${replica10}  -i ${cert}   "pkill client; ./${ctl_path} --name 55 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 0 --arrivalRate "${arrivalRate}" --config ${config}"  >${local_output_path}55.log &
+nohup ssh ${replica6}   -i ${cert}   "pkill client; ./${ctl_path} --name 51 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 100 --arrivalRate "${arrivalRate}" --config ${config}"  >${local_output_path}51.log &
+nohup ssh ${replica7}   -i ${cert}   "pkill client; ./${ctl_path} --name 52 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 100 --arrivalRate "${arrivalRate}" --config ${config}"  >${local_output_path}52.log &
+nohup ssh ${replica8}   -i ${cert}   "pkill client; ./${ctl_path} --name 53 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 100 --arrivalRate "${arrivalRate}" --config ${config}"  >${local_output_path}53.log &
+nohup ssh ${replica9}   -i ${cert}   "pkill client; ./${ctl_path} --name 54 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 100 --arrivalRate "${arrivalRate}" --config ${config}"  >${local_output_path}54.log &
+nohup ssh ${replica10}  -i ${cert}   "pkill client; ./${ctl_path} --name 55 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 100 --arrivalRate "${arrivalRate}" --config ${config}"  >${local_output_path}55.log &
 
-sleep 80
+sleep 120
 
 echo "Completed Client[s]"
 
-nohup ssh ${replica6} -i ${cert}   "pkill client; ./${ctl_path} --name 51 --logFilePath ${output_path} --requestType status --operationType 2  --debugOn --debugLevel 0  --config ${config}" >${local_output_path}status2.log &
+nohup ssh ${replica6} -i ${cert}   "pkill client; ./${ctl_path} --name 51 --logFilePath ${output_path} --requestType status --operationType 2  --debugOn --debugLevel 100  --config ${config}" >${local_output_path}status2.log &
 
 sleep 20
 
@@ -68,9 +68,9 @@ python3 integration-test/python/overlay-test.py ${local_output_path}/1-consensus
 
 for index in "${!replicas[@]}";
 do
-  sshpass ssh "${replicas[${index}]}"  -i ${cert}  "pkill replica; pkill client;pkill replica; pkill client;pkill replica; pkill client; rm -r ${output_path}; mkdir ${output_path}"
+  sshpass ssh "${replicas[${index}]}"  -i ${cert}  "pkill replica; pkill client"
 done
 
 sleep 15
-
-echo "Finish test"
+#
+#echo "Finish test"
