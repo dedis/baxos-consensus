@@ -37,7 +37,7 @@ func main() {
 	cl.StartOutgoingLinks()
 	cl.ConnectToReplicas()
 
-	time.Sleep(5 * time.Second)
+	time.Sleep(15 * time.Second)
 
 	if cl.RequestType == "status" {
 		cl.SendStatus(cl.OperationType)

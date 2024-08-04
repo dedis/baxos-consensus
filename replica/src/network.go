@@ -242,7 +242,7 @@ func (rp *Replica) internalSendMessage(peer int32, rpcPair *common.RPCPair) {
 	} else if peerType == "client" {
 		w := rp.outgoingClientWriters[peer]
 		if w == nil {
-			panic("client not found")
+			panic("client not found " + strconv.Itoa(int(peer)))
 		}
 		rp.outgoingClientWriterMutexs[peer].Lock()
 		err := w.WriteByte(rpcPair.Code)
