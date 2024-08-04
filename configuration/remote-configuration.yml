@@ -1,0 +1,23 @@
+peers:
+   - name: 1
+     address: 10.156.33.140:10001
+   - name: 2
+     address: 10.156.33.141:10002
+   - name: 3
+     address: 10.156.33.142:10003
+   - name: 4
+     address: 10.156.33.143:10004
+   - name: 5
+     address: 10.156.33.144:10005
+
+clients:
+   - name: 51
+     address: 10.156.33.145:12001
+   - name: 52
+     address: 10.156.33.146:12002
+   - name: 53
+     address: 10.156.33.147:12003
+   - name: 54
+     address: 10.156.33.148:12004
+   - name: 55
+     address: 10.156.33.149:12005

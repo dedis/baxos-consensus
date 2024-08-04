@@ -44,11 +44,14 @@ func (rp *Replica) randomBackOff(instance int64) {
 		rp.baxosConsensus.retries = 10
 	}
 
+	rp.incomingRequests = append(rp.incomingRequests, rp.baxosConsensus.replicatedLog[instance].proposer_bookkeeping.proposedValue.Requests...)
+
 	// reset the proposer bookkeeping
 	rp.baxosConsensus.replicatedLog[instance].proposer_bookkeeping.preparedBallot = -1
 	rp.baxosConsensus.replicatedLog[instance].proposer_bookkeeping.numSuccessfulPromises = 0
 	rp.baxosConsensus.replicatedLog[instance].proposer_bookkeeping.highestSeenAcceptedBallot = -1
 	rp.baxosConsensus.replicatedLog[instance].proposer_bookkeeping.highestSeenAcceptedValue = common.ReplicaBatch{}
+
 	rp.baxosConsensus.replicatedLog[instance].proposer_bookkeeping.proposedValue = common.ReplicaBatch{}
 	rp.baxosConsensus.replicatedLog[instance].proposer_bookkeeping.numSuccessfulAccepts = 0
 
