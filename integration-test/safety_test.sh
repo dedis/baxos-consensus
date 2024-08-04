@@ -5,6 +5,9 @@ replica_path="replica/bin/replica"
 ctl_path="client/bin/client"
 output_path="logs/"
 
+go build -v -o ./client/bin/client ./client/
+go build -v -o ./replica/bin/replica ./replica/
+
 rm -r ${output_path}
 mkdir -p ${output_path}
 

@@ -9,7 +9,7 @@ import (
 
 func main() {
 	name := flag.Int64("name", 51, "name of the client as specified in the local-configuration.yml")
-	configFile := flag.String("config", "configuration/local/local-configuration.yml", "configuration file")
+	configFile := flag.String("config", "configuration/local-configuration.yml", "configuration file")
 	logFilePath := flag.String("logFilePath", "logs/", "log file path")
 	batchSize := flag.Int("batchSize", 50, "client batch size")
 	batchTime := flag.Int("batchTime", 2000, "maximum time to wait for collecting a batch of requests in micro seconds")
