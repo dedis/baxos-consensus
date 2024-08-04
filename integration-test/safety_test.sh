@@ -36,11 +36,11 @@ sleep 10
 
 echo "starting clients"
 
-nohup ./${ctl_path} --name 51 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 0 --arrivalRate "${arrivalRate}"  >${output_path}51.log &
-nohup ./${ctl_path} --name 52 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 0 --arrivalRate "${arrivalRate}"  >${output_path}52.log &
-nohup ./${ctl_path} --name 53 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 0 --arrivalRate "${arrivalRate}"  >${output_path}53.log &
-nohup ./${ctl_path} --name 54 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 0 --arrivalRate "${arrivalRate}"  >${output_path}54.log &
-nohup ./${ctl_path} --name 55 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 0 --arrivalRate "${arrivalRate}"  >${output_path}55.log &
+nohup ./${ctl_path} --name 51 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 110 --arrivalRate "${arrivalRate}"  >${output_path}51.log &
+nohup ./${ctl_path} --name 52 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 110 --arrivalRate "${arrivalRate}"  >${output_path}52.log &
+nohup ./${ctl_path} --name 53 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 110 --arrivalRate "${arrivalRate}"  >${output_path}53.log &
+nohup ./${ctl_path} --name 54 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 110 --arrivalRate "${arrivalRate}"  >${output_path}54.log &
+nohup ./${ctl_path} --name 55 --logFilePath ${output_path} --requestType request --debugOn --debugLevel 110 --arrivalRate "${arrivalRate}"  >${output_path}55.log &
 
 sleep 10
 

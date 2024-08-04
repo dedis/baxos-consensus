@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
-	"time"
 )
 
 type BaxosProposerInstance struct {
@@ -95,14 +94,11 @@ func InitBaxosConsensus(replica *Replica, isAsync bool, asyncTimeout int, roundT
 
 // calculate the backoff time for the proposer
 
-func (rp *Replica) calculateBackOffTime() time.Duration {
+func (rp *Replica) calculateBackOffTime() int64 {
 	// k × 2^retries × 2 × RTT
 	k := 1.0 - rand.Float64()
 	backoff_time := k * math.Pow(2, float64(rp.baxosConsensus.retries+1)) * float64(rp.baxosConsensus.roundTripTime)
-	if rp.debugOn {
-		rp.debug("Backing off for "+strconv.Itoa(int(backoff_time))+" microseconds", 0)
-	}
-	return time.Duration(backoff_time)
+	return int64(backoff_time)
 }
 
 // external API for Baxos messages
