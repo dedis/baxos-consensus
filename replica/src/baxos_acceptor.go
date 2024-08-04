@@ -28,7 +28,7 @@ func (rp *Replica) processPrepare(message *common.PrepareRequest) *common.Promis
 	if rp.baxosConsensus.replicatedLog[message.InstanceNumber].acceptor_bookkeeping.promisedBallot < message.PrepareBallot {
 		rp.baxosConsensus.replicatedLog[message.InstanceNumber].acceptor_bookkeeping.promisedBallot = message.PrepareBallot
 		if rp.debugOn {
-			rp.debug(fmt.Sprintf("Prepare accepted, hence sending a promise reply", message.InstanceNumber), 0)
+			rp.debug(fmt.Sprintf("Prepare with ballot %d accepted, hence sending a promise reply for instance %d", message.PrepareBallot, message.InstanceNumber), 0)
 		}
 		return &common.PromiseReply{
 			InstanceNumber:     message.InstanceNumber,
@@ -39,7 +39,6 @@ func (rp *Replica) processPrepare(message *common.PrepareRequest) *common.Promis
 			Sender:             int64(rp.name),
 		}
 	}
-
 	return nil
 }
 
