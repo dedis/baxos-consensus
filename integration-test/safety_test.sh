@@ -16,11 +16,11 @@ pkill client; pkill client; pkill client; pkill client; pkill client
 
 echo "Killed previously running instances"
 
-nohup ./${replica_path} --name 1 --debugOn --debugLevel 1 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}1.log &
-nohup ./${replica_path} --name 2 --debugOn --debugLevel 1 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}2.log &
-nohup ./${replica_path} --name 3 --debugOn --debugLevel 1 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}3.log &
-nohup ./${replica_path} --name 4 --debugOn --debugLevel 1 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}4.log &
-nohup ./${replica_path} --name 5 --debugOn --debugLevel 1 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}5.log &
+nohup ./${replica_path} --name 1 --debugOn --debugLevel 2 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}1.log &
+nohup ./${replica_path} --name 2 --debugOn --debugLevel 2 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}2.log &
+nohup ./${replica_path} --name 3 --debugOn --debugLevel 2 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}3.log &
+nohup ./${replica_path} --name 4 --debugOn --debugLevel 2 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}4.log &
+nohup ./${replica_path} --name 5 --debugOn --debugLevel 2 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}5.log &
 
 echo "Started 5 replicas"
 

@@ -26,12 +26,12 @@ func (rp *Replica) setTimer(instance int64) {
 
 func (rp *Replica) randomBackOff(instance int64) {
 	if rp.debugOn {
-		rp.debug("PROPOSER: Timed out when proposing for instance "+strconv.Itoa(int(instance)), 1)
+		rp.debug("PROPOSER: Timed out when proposing for instance "+strconv.Itoa(int(instance)), 2)
 	}
 
 	if rp.baxosConsensus.replicatedLog[instance].decided && rp.baxosConsensus.replicatedLog[instance].proposer_bookkeeping.numSuccessfulAccepts >= rp.baxosConsensus.quorumSize {
 		if rp.debugOn {
-			rp.debug("PROPOSER: Instance "+strconv.Itoa(int(instance))+" already decided, hence ignoring the timeout indication", 1)
+			rp.debug("PROPOSER: Instance "+strconv.Itoa(int(instance))+" already decided, hence ignoring the timeout indication", 2)
 		}
 		return
 	}
@@ -71,7 +71,7 @@ func (rp *Replica) randomBackOff(instance int64) {
 	rp.baxosConsensus.wakeupTimer.SetTimeoutFuntion(func() {
 		rp.baxosConsensus.wakeupChan <- true
 		if rp.debugOn {
-			rp.debug("PROPOSER: Finished backing off ", 1)
+			rp.debug("PROPOSER: Finished backing off ", 2)
 		}
 	})
 	rp.baxosConsensus.wakeupTimer.Start()
@@ -81,7 +81,7 @@ func (rp *Replica) randomBackOff(instance int64) {
 
 func (rp *Replica) proposeAfterBackingOff() {
 	if rp.debugOn {
-		rp.debug("PROPOSER: Proposing after backing off", 1)
+		rp.debug("PROPOSER: Proposing after backing off", 2)
 	}
 	rp.baxosConsensus.isBackingOff = false
 	rp.sendPrepare()
@@ -149,7 +149,7 @@ func (rp *Replica) handlePromise(message *common.PromiseReply) {
 			rp.baxosConsensus.replicatedLog[message.InstanceNumber].decided = true
 			rp.baxosConsensus.replicatedLog[message.InstanceNumber].decidedValue = *message.DecidedValue
 			if rp.debugOn {
-				rp.debug("PROPOSER: Instance "+strconv.Itoa(int(message.InstanceNumber))+" decided using promise response, hence setting the decided value", 1)
+				rp.debug("PROPOSER: Instance "+strconv.Itoa(int(message.InstanceNumber))+" decided using promise response, hence setting the decided value", 2)
 			}
 			rp.updateSMR()
 			return
@@ -174,7 +174,7 @@ func (rp *Replica) handlePromise(message *common.PromiseReply) {
 		}
 		if rp.baxosConsensus.replicatedLog[message.InstanceNumber].proposer_bookkeeping.numSuccessfulPromises == rp.baxosConsensus.quorumSize {
 			if rp.debugOn {
-				rp.debug("PROPOSER: Instance "+strconv.Itoa(int(message.InstanceNumber))+" received quorum of promises, hence proposing", 1)
+				rp.debug("PROPOSER: Instance "+strconv.Itoa(int(message.InstanceNumber))+" received quorum of promises, hence proposing", 2)
 			}
 			rp.sendPropose(message.InstanceNumber)
 		}
@@ -294,7 +294,7 @@ func (rp *Replica) sendPropose(instance int32) {
 		rp.sendMessage(k, common.RPCPair{Code: rp.messageCodes.ProposeRequest, Obj: &proposeRequest})
 	}
 	if rp.debugOn {
-		rp.debug("PROPOSER: Broadcast propose for instance "+strconv.Itoa(int(instance))+" for ballot "+strconv.Itoa(int(rp.baxosConsensus.replicatedLog[instance].proposer_bookkeeping.preparedBallot)), 1)
+		rp.debug("PROPOSER: Broadcast propose for instance "+strconv.Itoa(int(instance))+" for ballot "+strconv.Itoa(int(rp.baxosConsensus.replicatedLog[instance].proposer_bookkeeping.preparedBallot)), 2)
 
 	}
 
@@ -318,7 +318,7 @@ func (rp *Replica) handleAccept(message *common.AcceptReply) {
 
 	if message.Decided && !rp.baxosConsensus.replicatedLog[message.InstanceNumber].decided {
 		if rp.debugOn {
-			rp.debug("PROPOSER: Instance "+strconv.Itoa(int(message.InstanceNumber))+" decided using accept response, hence setting the decided value", 1)
+			rp.debug("PROPOSER: Instance "+strconv.Itoa(int(message.InstanceNumber))+" decided using accept response, hence setting the decided value", 2)
 		}
 		rp.baxosConsensus.replicatedLog[message.InstanceNumber].decided = true
 		rp.baxosConsensus.replicatedLog[message.InstanceNumber].decidedValue = *message.DecidedValue
@@ -342,7 +342,7 @@ func (rp *Replica) handleAccept(message *common.AcceptReply) {
 
 			if !rp.baxosConsensus.replicatedLog[message.InstanceNumber].decided {
 				if rp.debugOn {
-					rp.debug("PROPOSER: Instance "+strconv.Itoa(int(message.InstanceNumber))+" received quorum of accepts, hence deciding", 1)
+					rp.debug("PROPOSER: Instance "+strconv.Itoa(int(message.InstanceNumber))+" received quorum of accepts, hence deciding", 2)
 				}
 				rp.baxosConsensus.replicatedLog[message.InstanceNumber].decided = true
 				rp.baxosConsensus.replicatedLog[message.InstanceNumber].decidedValue = rp.baxosConsensus.replicatedLog[message.InstanceNumber].proposer_bookkeeping.proposedValue

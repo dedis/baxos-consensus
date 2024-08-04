@@ -131,6 +131,9 @@ func (rp *Replica) handlePropose(message *common.ProposeRequest) {
 	if message.DecideInfo != nil {
 		rp.createInstance(int(message.DecideInfo.InstanceNumber))
 		if !rp.baxosConsensus.replicatedLog[message.DecideInfo.InstanceNumber].decided {
+			if rp.debugOn {
+				rp.debug(fmt.Sprintf("ACCEPTOR: Instance %d decided using decided value in propose", message.DecideInfo.InstanceNumber), 2)
+			}
 			rp.baxosConsensus.replicatedLog[message.DecideInfo.InstanceNumber].decided = true
 			rp.baxosConsensus.replicatedLog[message.DecideInfo.InstanceNumber].decidedValue = *message.DecideInfo.DecidedValue
 			rp.updateSMR()
