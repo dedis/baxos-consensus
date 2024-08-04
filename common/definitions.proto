@@ -33,7 +33,7 @@ message ReplicaBatch {
 */
 
 message Status {
-  int32 type = 1; // 1 for bootstrap, 2 for log print, 3 consensus start
+  int32 type = 1; // 1 for bootstrap, 2 for log print
   string note = 2;
   int64 sender = 3;
 }

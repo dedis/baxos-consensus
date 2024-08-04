@@ -49,8 +49,6 @@ type Replica struct {
 
 	baxosConsensus *Baxos // Baxos consensus data structs
 
-	consensusStarted bool
-
 	logPrinted bool // to check if log was printed before
 
 	benchmarkMode int        // 0 for resident K/V store, 1 for redis
@@ -103,7 +101,6 @@ func New(name int32, cfg *common.InstanceConfig, logFilePath string, replicaBatc
 		debugLevel:          debugLevel,
 		serverStarted:       false,
 
-		consensusStarted: false,
 		logPrinted:       false,
 		benchmarkMode:    benchmarkMode,
 		state:            Init(benchmarkMode, name, keyLen, valLen),

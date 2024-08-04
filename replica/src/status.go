@@ -25,14 +25,8 @@ func (rp *Replica) handleStatus(message *common.Status) {
 			rp.logPrinted = true
 			rp.printBaxosLogConsensus() // this is for consensus testing purposes
 		}
-	} else if message.Type == 3 {
-		if rp.consensusStarted == false {
-			rp.consensusStarted = true
-			if rp.debugOn {
-				rp.debug("started baxos consensus", 0)
-			}
-		}
 	}
+
 	if rp.debugOn {
 		rp.debug("Sending status reply ", 0)
 	}
