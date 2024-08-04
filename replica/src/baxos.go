@@ -118,7 +118,7 @@ func (rp *Replica) handleBaxosConsensus(message common.Serializable, code uint8)
 		if rp.debugOn {
 			rp.debug("Received a promise message from "+strconv.Itoa(int(promiseReply.Sender))+" for instance "+strconv.Itoa(int(promiseReply.InstanceNumber))+" for promise ballot "+strconv.Itoa(int(promiseReply.LastPromisedBallot)), 0)
 		}
-		rp.handlePromise(promiseReply)
+		rp.handlePromise(promiseReply, true)
 	}
 
 	if code == rp.messageCodes.ProposeRequest {

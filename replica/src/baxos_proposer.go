@@ -134,7 +134,7 @@ func (rp *Replica) sendPrepare() {
 	Handler for promise message
 */
 
-func (rp *Replica) handlePromise(message *common.PromiseReply) {
+func (rp *Replica) handlePromise(message *common.PromiseReply, sendPropose bool) {
 
 	if rp.baxosConsensus.replicatedLog[message.InstanceNumber].decided {
 
@@ -172,14 +172,14 @@ func (rp *Replica) handlePromise(message *common.PromiseReply) {
 			rp.baxosConsensus.replicatedLog[message.InstanceNumber].proposer_bookkeeping.highestSeenAcceptedBallot = int32(message.LastAcceptedBallot)
 			rp.baxosConsensus.replicatedLog[message.InstanceNumber].proposer_bookkeeping.highestSeenAcceptedValue = *message.LastAcceptedValue
 		}
-		if rp.baxosConsensus.replicatedLog[message.InstanceNumber].proposer_bookkeeping.numSuccessfulPromises == rp.baxosConsensus.quorumSize {
+		if rp.baxosConsensus.replicatedLog[message.InstanceNumber].proposer_bookkeeping.numSuccessfulPromises == rp.baxosConsensus.quorumSize && sendPropose {
 			if rp.debugOn {
 				rp.debug("PROPOSER: Instance "+strconv.Itoa(int(message.InstanceNumber))+" received quorum of promises, hence proposing", 2)
 			}
 			rp.sendPropose(message.InstanceNumber)
 		}
-
 	}
+
 }
 
 // invoked upon receiving a client batch
@@ -309,6 +309,11 @@ func (rp *Replica) sendPropose(instance int32) {
 */
 
 func (rp *Replica) handleAccept(message *common.AcceptReply) {
+
+	if message.PromiseReplyForFutureIndex != nil {
+		rp.handlePromise(message.PromiseReplyForFutureIndex, false)
+	}
+
 	if rp.baxosConsensus.replicatedLog[message.InstanceNumber].decided {
 		if rp.debugOn {
 			rp.debug("PROPOSER: Instance "+strconv.Itoa(int(message.InstanceNumber))+" already decided, hence ignoring the accept", 1)
