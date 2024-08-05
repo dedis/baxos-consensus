@@ -44,7 +44,7 @@ type Client struct {
 	arrivalTimeChan     chan int64              // channel to which the poisson process adds new request arrival times in nanoseconds w.r.t test start time
 	arrivalChan         chan bool               // channel to which the main scheduler adds new request indications, to be consumed by the request generation threads
 	RequestType         string                  // [request] for sending a stream of client requests, [status] for sending a status request
-	OperationType       int                     // status operation type 1 (bootstrap server), 2: print log, 3: start consensus
+	OperationType       int                     // status operation type 1 (bootstrap server), 2: print log
 	sentRequests        [][]requestBatch        // generator i updates sentRequests[i] :this is to avoid concurrent access to the same array
 	receivedResponses   map[string]requestBatch // set of received client response batches from replicas: a map is used for fast lookup
 	startTime           time.Time               // test start time
@@ -69,7 +69,7 @@ type requestBatch struct {
 }
 
 const statusTimeout = 5               // time to wait for a status request in seconds
-const numOutgoingThreads = 200        // number of wire writers: since the I/O writing is expensive we delegate that task to a thread pool and separate from the critical path
+const numOutgoingThreads = 10         // number of wire writers: since the I/O writing is expensive we delegate that task to a thread pool and separate from the critical path
 const numRequestGenerationThreads = 1 // number of  threads that generate client requests upon receiving an arrival indication
 const incomingBufferSize = 1000000    // the size of the buffer which receives all the incoming messages (client response batch messages and client status response message)
 const outgoingBufferSize = 1000000    // size of the buffer that collects messages to be written to the wire
