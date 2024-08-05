@@ -37,18 +37,15 @@ sys.stdout.flush()
 def exit_handler():
     print("Ending!")
     sys.stdout.flush()
-    os.system("kill -CONT " + processes[0])
-    os.system("kill -CONT " + processes[1])
-    os.system("kill -CONT " + processes[2])
-    os.system("kill -CONT " + processes[3])
-    os.system("kill -CONT " + processes[4])
+    for i in processes:
+        os.system("kill -CONT " + i)
 
 
 atexit.register(exit_handler)
 
 t_end = time.time() + 40
 while time.time() < t_end:
-    randomInstance = random.randint(0, 4)
+    randomInstance = random.randint(0, len(processes)-1)
     print("stopping" + str(processes[randomInstance]))
     os.system("kill -STOP " + processes[randomInstance])
     time.sleep(int(wait_time))

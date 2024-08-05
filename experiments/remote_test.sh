@@ -17,7 +17,7 @@ rm -r "${local_output_path}"; mkdir -p "${local_output_path}"
 
 for index in "${!replicas[@]}";
 do
-  sshpass ssh "${replicas[${index}]}"  -i ${cert}  "pkill replica; pkill client;pkill replica; pkill client;pkill replica; pkill client; rm -r ${output_path}; mkdir -p ${output_path}"
+  sshpass ssh "${replicas[${index}]}"  -i ${cert}  "pkill replica; pkill client; rm -r ${output_path}; mkdir -p ${output_path}"
 done
 
 sleep 10
@@ -26,11 +26,11 @@ echo "Killed previously running instances"
 
 echo "starting replicas"
 
-nohup ssh ${replica1}  -i ${cert}   "pkill replica; ./${replica_path} --name 1 --debugOn --debugLevel 20 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}1.log &
-nohup ssh ${replica2}  -i ${cert}   "pkill replica; ./${replica_path} --name 2 --debugOn --debugLevel 20 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}2.log &
-nohup ssh ${replica3}  -i ${cert}   "pkill replica; ./${replica_path} --name 3 --debugOn --debugLevel 20 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}3.log &
-nohup ssh ${replica4}  -i ${cert}   "pkill replica; ./${replica_path} --name 4 --debugOn --debugLevel 20 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}4.log &
-nohup ssh ${replica5}  -i ${cert}   "pkill replica; ./${replica_path} --name 5 --debugOn --debugLevel 20 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}5.log &
+nohup ssh ${replica1}  -i ${cert}   "pkill replica; ./${replica_path} --name 1  --debugLevel 100 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}1.log &
+nohup ssh ${replica2}  -i ${cert}   "pkill replica; ./${replica_path} --name 2  --debugLevel 100 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}2.log &
+nohup ssh ${replica3}  -i ${cert}   "pkill replica; ./${replica_path} --name 3  --debugLevel 100 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}3.log &
+nohup ssh ${replica4}  -i ${cert}   "pkill replica; ./${replica_path} --name 4  --debugLevel 100 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}4.log &
+nohup ssh ${replica5}  -i ${cert}   "pkill replica; ./${replica_path} --name 5  --debugLevel 100 --roundTripTime "${roundTripTime}"  --logFilePath ${output_path} --config ${config}" > ${local_output_path}5.log &
 
 echo "Started replicas"
 
@@ -72,5 +72,5 @@ do
 done
 
 sleep 15
-#
-#echo "Finish test"
+
+echo "Finish test"

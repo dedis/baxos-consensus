@@ -1,5 +1,6 @@
 arrivalRate=$1
 round_trip_time=$2
+attack=$3
 
 replica_path="replica/bin/replica"
 ctl_path="client/bin/client"
@@ -16,17 +17,17 @@ pkill client; pkill client; pkill client; pkill client; pkill client
 
 echo "Killed previously running instances"
 
-nohup ./${replica_path} --name 1 --debugOn --debugLevel 2 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}1.log &
-nohup ./${replica_path} --name 2 --debugOn --debugLevel 2 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}2.log &
-nohup ./${replica_path} --name 3 --debugOn --debugLevel 2 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}3.log &
-nohup ./${replica_path} --name 4 --debugOn --debugLevel 2 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}4.log &
-nohup ./${replica_path} --name 5 --debugOn --debugLevel 2 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}5.log &
+nohup ./${replica_path} --name 1 --debugOn --debugLevel 100 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}1.log &
+nohup ./${replica_path} --name 2 --debugOn --debugLevel 100 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}2.log &
+nohup ./${replica_path} --name 3 --debugOn --debugLevel 100 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}3.log &
+nohup ./${replica_path} --name 4 --debugOn --debugLevel 100 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}4.log &
+nohup ./${replica_path} --name 5 --debugOn --debugLevel 100 --roundTripTime "${round_trip_time}"  --logFilePath ${output_path} >${output_path}5.log &
 
 echo "Started 5 replicas"
 
 sleep 5
 
-./${ctl_path} --name 51 --logFilePath ${output_path} --requestType status --operationType 1  --debugOn --debugLevel 0 >${output_path}status1.log
+./${ctl_path} --name 51 --logFilePath ${output_path} --requestType status --operationType 1  --debugOn --debugLevel 100 >${output_path}status1.log
 
 sleep 5
 
@@ -44,7 +45,12 @@ nohup ./${ctl_path} --name 55 --logFilePath ${output_path} --requestType request
 
 sleep 10
 
-# python3 integration-test/python/crash-recovery-test.py ${output_path}/1.log ${output_path}/2.log ${output_path}/3.log ${output_path}/4.log ${output_path}/5.log > ${output_path}crash_recovery.log
+if [ "${attack}" -eq 1 ]; then
+    echo "Starting attack"
+    python3 integration-test/python/crash-recovery-test.py ${output_path}/1.log ${output_path}/2.log ${output_path}/3.log ${output_path}/4.log ${output_path}/5.log
+fi
+
+#
 
 
 sleep 120
@@ -52,7 +58,7 @@ sleep 120
 echo "finished running clients"
 
 
-nohup ./${ctl_path} --name 51 --logFilePath ${output_path} --requestType status --operationType 2  --debugOn --debugLevel 0 >${output_path}status2.log &
+nohup ./${ctl_path} --name 51 --logFilePath ${output_path} --requestType status --operationType 2  --debugOn --debugLevel 110 >${output_path}status2.log &
 
 
 echo "sent status to print logs"
