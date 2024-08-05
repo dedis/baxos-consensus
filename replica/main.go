@@ -16,7 +16,7 @@ func main() {
 	batchTime := flag.Int("batchTime", 5000, "maximum time to wait for collecting a batch of requests in micro seconds")
 	debugOn := flag.Bool("debugOn", false, "false or true")
 	isAsync := flag.Bool("isAsync", false, "false or true to simulate asynchrony")
-	debugLevel := flag.Int("debugLevel", 0, "debug level")
+	debugLevel := flag.Int("debugLevel", -1, "debug level")
 	roundTripTime := flag.Int("roundTripTime", 2000, "round trip time in micro seconds")
 	keyLen := flag.Int("keyLen", 8, "key length")
 	valLen := flag.Int("valLen", 8, "value length")

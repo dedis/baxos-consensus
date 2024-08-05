@@ -2,7 +2,6 @@ package src
 
 import (
 	"baxos/common"
-	"math/rand"
 	"strconv"
 	"time"
 )
@@ -13,7 +12,7 @@ import (
 
 func (rp *Replica) setTimer(instance int64) {
 
-	rp.baxosConsensus.timer = common.NewTimerWithCancel(time.Duration(rp.baxosConsensus.roundTripTime+int64(rand.Intn(int(rp.baxosConsensus.roundTripTime)+int(rp.name)))) * time.Microsecond)
+	rp.baxosConsensus.timer = common.NewTimerWithCancel(time.Duration(rp.baxosConsensus.roundTripTime) * time.Microsecond)
 
 	rp.baxosConsensus.timer.SetTimeoutFuntion(func() {
 		rp.baxosConsensus.timeOutChan <- instance
@@ -112,7 +111,7 @@ func (rp *Replica) sendPrepare() {
 	rp.baxosConsensus.replicatedLog[nextFreeInstance].proposer_bookkeeping.numSuccessfulAccepts = 0
 
 	rp.baxosConsensus.replicatedLog[nextFreeInstance].proposer_bookkeeping.preparedBallot =
-		rp.baxosConsensus.replicatedLog[nextFreeInstance].acceptor_bookkeeping.promisedBallot + rp.name + 1
+		rp.baxosConsensus.replicatedLog[nextFreeInstance].acceptor_bookkeeping.promisedBallot + rp.name + 2
 
 	for k, _ := range rp.replicaAddrList {
 		prepareMessage := common.PrepareRequest{
@@ -130,14 +129,13 @@ func (rp *Replica) sendPrepare() {
 		rp.baxosConsensus.timer.Cancel()
 	}
 	rp.setTimer(int64(nextFreeInstance))
-
 }
 
 /*
 	Handler for promise message
 */
 
-func (rp *Replica) handlePromise(message *common.PromiseReply, sendPropose bool) {
+func (rp *Replica) handlePromise(message *common.PromiseReply) {
 
 	if rp.baxosConsensus.replicatedLog[message.InstanceNumber].decided {
 
@@ -175,7 +173,7 @@ func (rp *Replica) handlePromise(message *common.PromiseReply, sendPropose bool)
 			rp.baxosConsensus.replicatedLog[message.InstanceNumber].proposer_bookkeeping.highestSeenAcceptedBallot = int32(message.LastAcceptedBallot)
 			rp.baxosConsensus.replicatedLog[message.InstanceNumber].proposer_bookkeeping.highestSeenAcceptedValue = *message.LastAcceptedValue
 		}
-		if rp.baxosConsensus.replicatedLog[message.InstanceNumber].proposer_bookkeeping.numSuccessfulPromises == rp.baxosConsensus.quorumSize && sendPropose {
+		if rp.baxosConsensus.replicatedLog[message.InstanceNumber].proposer_bookkeeping.numSuccessfulPromises == rp.baxosConsensus.quorumSize {
 			if rp.debugOn {
 				rp.debug("PROPOSER: Instance "+strconv.Itoa(int(message.InstanceNumber))+" received quorum of promises, hence proposing", 2)
 			}
@@ -207,7 +205,7 @@ func (rp *Replica) tryPropose() {
 
 func (rp *Replica) sendPropose(instance int32) {
 
-	rp.createInstance(int(instance + 1))
+	rp.createInstance(int(instance))
 
 	// set the decided info
 

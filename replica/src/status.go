@@ -8,12 +8,12 @@ import (
 
 /*
 	Handler for status message
-		1. Invoke bootstrap / start consensus or printlog depending on the operation type
+		1. Invoke bootstrap or printlog depending on the operation type
 		2. Send a response back to the sender
 */
 
 func (rp *Replica) handleStatus(message *common.Status) {
-	fmt.Print("Status  " + fmt.Sprintf("%v", message) + " \n")
+	fmt.Print("Status  " + fmt.Sprintf("from: %v for type %v", message.Sender, message.Type) + " \n")
 	if message.Type == 1 {
 		if rp.serverStarted == false {
 			rp.serverStarted = true
@@ -31,8 +31,8 @@ func (rp *Replica) handleStatus(message *common.Status) {
 		rp.debug("Sending status reply ", 0)
 	}
 	statusMessage := common.Status{
-		Type: message.Type,
-		Note: message.Note,
+		Type:   message.Type,
+		Sender: int64(rp.name),
 	}
 
 	rpcPair := common.RPCPair{

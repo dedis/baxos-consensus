@@ -100,11 +100,7 @@ func (rp *Replica) processPropose(message *common.ProposeRequest) *common.Accept
 		if rp.debugOn {
 			rp.debug(fmt.Sprintf("ACCEPTOR: Propose rejected for instance %d with ballot %d", message.InstanceNumber, message.ProposeBallot), 1)
 		}
-		return &common.AcceptReply{
-			InstanceNumber: message.InstanceNumber,
-			Accept:         false,
-			Sender:         int64(rp.name),
-		}
+		return nil
 	}
 }
 
@@ -117,12 +113,14 @@ func (rp *Replica) handlePropose(message *common.ProposeRequest) {
 	// handle the propose slot
 	acceptReply := rp.processPropose(message)
 
-	rp.sendMessage(int32(message.Sender), common.RPCPair{
-		Code: rp.messageCodes.AcceptReply,
-		Obj:  acceptReply,
-	})
-	if rp.debugOn {
-		rp.debug(fmt.Sprintf("ACCEPTOR: Sent accept message to %d for instance %d", message.Sender, message.InstanceNumber), 0)
+	if acceptReply != nil {
+		rp.sendMessage(int32(message.Sender), common.RPCPair{
+			Code: rp.messageCodes.AcceptReply,
+			Obj:  acceptReply,
+		})
+		if rp.debugOn {
+			rp.debug(fmt.Sprintf("ACCEPTOR: Sent accept message to %d for instance %d", message.Sender, message.InstanceNumber), 0)
+		}
 	}
 
 	// handle the decided slot
@@ -136,6 +134,5 @@ func (rp *Replica) handlePropose(message *common.ProposeRequest) {
 			rp.baxosConsensus.replicatedLog[message.DecideInfo.InstanceNumber].decidedValue = *message.DecideInfo.DecidedValue
 			rp.updateSMR()
 		}
-
 	}
 }
