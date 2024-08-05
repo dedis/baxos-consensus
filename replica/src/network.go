@@ -79,7 +79,7 @@ func (rp *Replica) connectionListener(reader *bufio.Reader, id int32) {
 	for true {
 		if msgType, err = reader.ReadByte(); err != nil {
 			if rp.debugOn {
-				rp.debug("Error while reading message code: connection broken from "+strconv.Itoa(int(id))+fmt.Sprintf(" %v", err), 3)
+				rp.debug("Error while reading message code: connection broken from "+strconv.Itoa(int(id))+fmt.Sprintf(" %v", err.Error()), 3)
 			}
 			return
 		}
@@ -87,7 +87,7 @@ func (rp *Replica) connectionListener(reader *bufio.Reader, id int32) {
 			obj := rpair.Obj.New()
 			if err = obj.Unmarshal(reader); err != nil {
 				if rp.debugOn {
-					rp.debug("Error while unmarshalling from "+strconv.Itoa(int(id))+fmt.Sprintf(" %v", err), 3)
+					rp.debug("Error while unmarshalling from "+strconv.Itoa(int(id))+fmt.Sprintf(" %v", err.Error()), 3)
 				}
 				return
 			}
@@ -115,17 +115,22 @@ func (rp *Replica) WaitForConnections() {
 	go func() {
 		var b [4]byte
 		bs := b[:4]
-		Listener, _ := net.Listen("tcp", rp.listenAddress)
+		Listener, err_ := net.Listen("tcp", rp.listenAddress)
+
+		if err_ != nil {
+			panic("Error while listening to incoming connections")
+		}
+
 		if rp.debugOn {
 			rp.debug("Listening to incoming connections in "+rp.listenAddress, 3)
 		}
 		for true {
 			conn, err := Listener.Accept()
 			if err != nil {
-				panic(err.Error() + fmt.Sprintf("%v", err))
+				panic(err.Error() + fmt.Sprintf("%v", err.Error()))
 			}
 			if _, err := io.ReadFull(conn, bs); err != nil {
-				panic(err.Error() + fmt.Sprintf("%v", err))
+				panic(err.Error() + fmt.Sprintf("%v", err.Error()))
 			}
 			id := int32(binary.LittleEndian.Uint16(bs))
 			if rp.debugOn {
@@ -284,34 +289,9 @@ func (rp *Replica) internalSendMessage(peer int32, rpcPair *common.RPCPair) {
 }
 
 /*
-	A set of threads that manages outgoing messages
-*/
-
-func (rp *Replica) StartOutgoingLinks() {
-	for i := 0; i < numOutgoingThreads; i++ {
-		go func() {
-			for true {
-				outgoingMessage := <-rp.outgoingMessageChan
-				rp.internalSendMessage(outgoingMessage.Peer, outgoingMessage.RpcPair)
-				if rp.debugOn {
-					rp.debug("Invoked internal sent to "+strconv.Itoa(int(outgoingMessage.Peer)), 0)
-				}
-			}
-		}()
-	}
-}
-
-/*
-	Add a new out-going message to the outgoing channel
+	send message
 */
 
 func (rp *Replica) sendMessage(peer int32, rpcPair common.RPCPair) {
-	//rp.outgoingMessageChan <- &common.OutgoingRPC{
-	//	RpcPair: &rpcPair,
-	//	Peer:    peer,
-	//}
-	//if rp.debugOn {
-	//	rp.debug("Added RPC pair to outgoing channel to peer "+strconv.Itoa(int(peer)), 0)
-	//}
 	rp.internalSendMessage(peer, &rpcPair)
 }

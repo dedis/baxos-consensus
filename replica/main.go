@@ -35,7 +35,6 @@ func main() {
 	rp := src.New(int32(*name), cfg, *logFilePath, *batchSize, *batchTime, *debugOn, *debugLevel, *benchmarkMode, *keyLen, *valLen, *isAsync, *asyncTimeout, *timeEpochSize, int64(*roundTripTime))
 
 	rp.WaitForConnections()
-	//rp.StartOutgoingLinks()
 	rp.Run() // this is run in main thread
 
 }

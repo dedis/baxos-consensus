@@ -40,8 +40,6 @@ type Replica struct {
 	replicaBatchSize int // maximum replica side batch size
 	replicaBatchTime int // maximum replica side batch time in micro seconds
 
-	outgoingMessageChan chan *common.OutgoingRPC // buffer for messages that are written to the wire
-
 	debugOn    bool // if turned on, the debug messages will be printed on the console
 	debugLevel int  // current debug level
 
@@ -62,9 +60,7 @@ type Replica struct {
 	timeEpochSize          int           // how many ms for a given time epoch
 }
 
-const numOutgoingThreads = 200       // number of wire writers: since the I/O writing is expensive we delegate that task to a thread pool and separate from the critical path
 const incomingBufferSize = 100000000 // the size of the buffer which receives all the incoming messages
-const outgoingBufferSize = 100000000 // size of the buffer that collects messages to be written to the wire
 
 /*
 	instantiate a new replica instance, allocate the buffers
@@ -96,10 +92,9 @@ func New(name int32, cfg *common.InstanceConfig, logFilePath string, replicaBatc
 		replicaBatchSize: replicaBatchSize,
 		replicaBatchTime: replicaBatchTime,
 
-		outgoingMessageChan: make(chan *common.OutgoingRPC, outgoingBufferSize),
-		debugOn:             debugOn,
-		debugLevel:          debugLevel,
-		serverStarted:       false,
+		debugOn:       debugOn,
+		debugLevel:    debugLevel,
+		serverStarted: false,
 
 		logPrinted:       false,
 		benchmarkMode:    benchmarkMode,
@@ -136,9 +131,11 @@ func New(name int32, cfg *common.InstanceConfig, logFilePath string, replicaBatc
 	rp.RegisterRPC(new(common.PromiseReply), rp.messageCodes.PromiseReply)
 	rp.RegisterRPC(new(common.ProposeRequest), rp.messageCodes.ProposeRequest)
 	rp.RegisterRPC(new(common.AcceptReply), rp.messageCodes.AcceptReply)
+
 	if rp.debugOn {
 		rp.debug("Registered RPCs in the table", 0)
 	}
+
 	if rp.isAsynchronous {
 		// initialize the attack replicas for each time epoch, we assume a total number of time of the run to be 10 minutes just for convenience, but this does not affect the correctness
 		numEpochs := 10 * 60 * 1000 / rp.timeEpochSize
@@ -157,11 +154,11 @@ func New(name int32, cfg *common.InstanceConfig, logFilePath string, replicaBatc
 		}
 
 		if rp.debugOn {
-			rp.debug(fmt.Sprintf("set of attacked nodes %v ", rp.asynchronousReplicas), 0)
+			rp.debug(fmt.Sprintf("set of attacked nodes %v ", rp.asynchronousReplicas), -1)
 		}
 	}
 
-	rp.baxosConsensus = InitBaxosConsensus(&rp, isAsync, asyncTimeout, round_trip_time) // reassign parameters later
+	rp.baxosConsensus = InitBaxosConsensus(&rp, isAsync, asyncTimeout, round_trip_time)
 
 	pid := os.Getpid()
 	fmt.Printf("--Initialized replica %v with process id: %v \n", name, pid)
