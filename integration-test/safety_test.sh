@@ -1,6 +1,6 @@
 arrivalRate=$1
 round_trip_time=$2
-attack=$3
+attack=$3 # 1 for attack, 0 for no attack
 
 replica_path="replica/bin/replica"
 ctl_path="client/bin/client"
