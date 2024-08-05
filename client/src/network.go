@@ -36,6 +36,10 @@ func (cl *Client) ConnectToReplicas() {
 					cl.debug("Established outgoing connection to "+strconv.Itoa(int(name)), 3)
 				}
 				break
+			} else {
+				if cl.debugOn {
+					cl.debug("Error while connecting to "+strconv.Itoa(int(name))+" "+err.Error(), 3)
+				}
 			}
 		}
 	}
@@ -102,7 +106,7 @@ func (cl *Client) connectionListener(reader *bufio.Reader, id int32) {
 			obj := rpair.Obj.New()
 			if err = obj.Unmarshal(reader); err != nil {
 				if cl.debugOn {
-					cl.debug("error while unmarshalling from "+strconv.Itoa(int(id)), 0)
+					cl.debug("error while unmarshalling from "+strconv.Itoa(int(id))+" "+err.Error(), 3)
 				}
 				return
 			}

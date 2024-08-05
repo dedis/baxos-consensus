@@ -12,7 +12,7 @@ import (
 */
 
 func (cl *Client) handleClientStatusResponse(response *common.Status) {
-	fmt.Printf("status response %v\n", response)
+	fmt.Printf("status response from %v for type %v\n", response.Sender, response.Type)
 }
 
 /*
