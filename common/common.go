@@ -1,8 +1,6 @@
 package common
 
 import (
-	"bytes"
-	"encoding/gob"
 	"strconv"
 	"time"
 )
@@ -94,16 +92,4 @@ func (t *TimerWithCancel) Cancel() {
 		break
 	}
 
-}
-
-/*
-	util function to get the size of a message
-*/
-
-func GetRealSizeOf(v interface{}) (int, error) {
-	b := new(bytes.Buffer)
-	if err := gob.NewEncoder(b).Encode(v); err != nil {
-		return 0, err
-	}
-	return b.Len(), nil
 }

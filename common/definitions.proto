@@ -29,7 +29,6 @@ message ReplicaBatch {
   Status is sent by a client to inform replicas about actions that include, but not limited to
   1. To establish connections to other nodes
   2. To write the logs to files
-  3. Bootstrap consensus
 */
 
 message Status {

@@ -8,7 +8,6 @@ import (
 
 /*
 	each message sent over the network should implement this interface
-	If a new message type needs to be added: first define it in a proto file, generate the go protobuf files and then implement the three methods
 */
 
 type Serializable interface {
@@ -18,7 +17,7 @@ type Serializable interface {
 }
 
 /*
-	A struct that allocates a unique uint8 for each message type. When you define a new proto message type, add the message to here
+	A struct that allocates a unique uint8 for each message type
 */
 
 type MessageCode struct {
@@ -31,7 +30,7 @@ type MessageCode struct {
 }
 
 /*
-	A static function which assigns a unique uint8 to each message type. Update this function when you define new message types
+	A static function which assigns a unique uint8 to each message type
 */
 
 func GetRPCCodes() MessageCode {

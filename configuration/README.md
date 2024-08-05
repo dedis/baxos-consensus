@@ -1,1 +1,0 @@
-```configuration``` package contains a python script that generates the configuration using input IP addresses
